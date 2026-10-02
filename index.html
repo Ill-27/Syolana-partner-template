@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <meta name="description" content="Сайт творческого проекта" />
-  <title>Творческий проект</title>
+  <meta name="description" content="Авторский сайт" />
+  <title>Авторский сайт</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
 
   <header class="site-header">
     <a class="brand" href="#top" aria-label="На главную">
-      <span class="brand-mark" id="brand-mark">◌</span>
+      <span id="brand-mark" class="brand-mark" aria-hidden="true"></span>
       <span id="brand-name">Проект</span>
     </a>
     <nav aria-label="Основная навигация">
@@ -24,7 +24,7 @@
 
   <main id="top">
     <section class="hero glass">
-      <p class="eyebrow">ТВОРЧЕСКИЙ ПРОЕКТ</p>
+      <p class="eyebrow">АВТОРСКОЕ ПРОСТРАНСТВО</p>
       <h1 id="partner-name">Загрузка…</h1>
       <p id="partner-tagline" class="tagline"></p>
       <p id="partner-description" class="description"></p>
@@ -45,14 +45,16 @@
     <section id="about" class="glass about">
       <p class="eyebrow">О САЙТЕ</p>
       <p>
-        Домен, хостинг и материалы принадлежат владельцу этого сайта.
-        Сайт и опубликованные материалы принадлежат владельцу проекта.
+        Домен, хостинг и опубликованные материалы находятся под управлением
+        владельца этого сайта.
       </p>
     </section>
   </main>
 
   <footer>
     <span id="footer-owner">Владелец сайта</span>
+    <span>·</span>
+    <span id="footer-note">Авторский сайт</span>
   </footer>
 
   <script type="module" src="./app.js"></script>
