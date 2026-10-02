@@ -8,8 +8,5 @@
     "player": true,
     "reader": true,
     "publishing": true
-  },
-  "detachPreviewQuery": "syolana=off",
-  "coreSource": "https://ill-27.github.io/Syolana-n/",
-  "platformUrl": "https://ill-27.github.io/Syolana-n/"
+  }
 }
