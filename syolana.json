@@ -1,0 +1,12 @@
+{
+  "partnerId": "demo-partner",
+  "mode": "preview",
+  "coreUrl": "",
+  "licenseEndpoint": "",
+  "features": {
+    "immersiveTheme": true,
+    "player": true,
+    "reader": true,
+    "publishing": true
+  }
+}
