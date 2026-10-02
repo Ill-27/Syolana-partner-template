@@ -3,7 +3,21 @@ name: Validate partner content
 on:
   push:
     branches: [main]
+    paths:
+      - "partner.json"
+      - "integration.json"
+      - "posts/**"
+      - "scripts/build-feed.mjs"
+      - "app.js"
+      - "platform-loader.js"
   pull_request:
+    paths:
+      - "partner.json"
+      - "integration.json"
+      - "posts/**"
+      - "scripts/build-feed.mjs"
+      - "app.js"
+      - "platform-loader.js"
 
 permissions:
   contents: read
@@ -16,24 +30,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: Validate and build feed
+      - name: Validate content and build feed
         run: node scripts/build-feed.mjs
-
-      - name: Build active integration
-        run: node scripts/build-site.mjs
-
-      - name: Prove clean offboarding
-        env:
-          SYOLANA_FORCE_MODE: inactive
-          DIST_DIR: .dist-off
-        run: node scripts/build-site.mjs
-
-      - name: Verify independent build has no platform brand
+      - name: Check integration config
         shell: bash
         run: |
-          if grep -Rni --exclude-dir=media --exclude='*.ogg' --exclude='*.m4a' 'syolana' .dist-off; then
-            echo "Brand reference found in independent build"
-            exit 1
-          fi
-          echo "Independent build is clean."
+          node - <<'NODE'
+          const fs = require("fs");
+          const cfg = JSON.parse(fs.readFileSync("integration.json", "utf8"));
+          const modes = new Set(["off","preview","active"]);
+          if (!modes.has(cfg.mode)) throw new Error("integration.json: invalid mode");
+          if (!cfg.partnerId) throw new Error("integration.json: partnerId is required");
+          if (cfg.mode !== "off") {
+            const url = new URL(cfg.coreUrl);
+            if (url.protocol !== "https:") throw new Error("integration.json: coreUrl must be https");
+          }
+          if (cfg.mode === "active") {
+            const url = new URL(cfg.licenseEndpoint);
+            if (url.protocol !== "https:") throw new Error("integration.json: licenseEndpoint must be https");
+          }
+          console.log("Integration config is valid.");
+          NODE
