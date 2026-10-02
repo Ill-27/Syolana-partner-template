@@ -4,64 +4,61 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#06070d" />
-  <meta name="description" content="Творческий сайт" />
-  <title>Творческий сайт</title>
+  <meta name="theme-color" content="#030309" />
+  <meta name="description" content="Авторский сайт" />
+  <title>Имя проекта</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="base-background" aria-hidden="true"></div>
+  <a class="skip-link" href="#feed">К публикациям</a>
 
-  <div class="partner-site-shell">
-    <header class="partner-site-header glass">
-      <a class="partner-brand" href="#top" aria-label="На главную">
-        <span class="partner-brand-mark" aria-hidden="true">✦</span>
-        <span id="brand-name">Проект</span>
-      </a>
-      <nav aria-label="Основная навигация">
-        <a href="#feed">Публикации</a>
-        <a href="#about">О проекте</a>
-      </nav>
-    </header>
+  <header class="site-header glass">
+    <a class="brand" href="#top" aria-label="На главную">
+      <span id="brand-mark" class="brand-mark" aria-hidden="true">•</span>
+      <span class="brand-copy">
+        <strong id="brand-name">Имя проекта</strong>
+        <small id="brand-tagline">Авторский сайт</small>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="Основная навигация">
+      <a href="#feed">Публикации</a>
+      <a href="#about">О проекте</a>
+    </nav>
+  </header>
 
-    <div class="partner-content">
+  <main id="top">
+    <section class="hero glass">
+      <p class="eyebrow">АВТОРСКОЕ ПРОСТРАНСТВО</p>
+      <h1 id="partner-name" class="partner-title">Загрузка…</h1>
+      <p id="partner-tagline" class="tagline"></p>
+      <p id="partner-description" class="description"></p>
+      <div id="partner-links" class="actions"></div>
+    </section>
 
-      <main id="top">
-        <section class="hero glass">
-          <p class="eyebrow">ТВОРЧЕСКИЙ ПРОЕКТ</p>
-          <h1 id="partner-name">Загрузка…</h1>
-          <p id="partner-tagline" class="tagline"></p>
-          <p id="partner-description" class="description"></p>
-          <div id="partner-links" class="actions"></div>
-        </section>
+    <section id="feed" class="section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ПУБЛИКАЦИИ</p>
+          <h2>Последнее</h2>
+        </div>
+        <div id="category-filter" class="filters" aria-label="Фильтр публикаций"></div>
+      </div>
+      <div id="feed-list" class="feed-grid"></div>
+    </section>
 
-        <section id="feed" class="section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">ПУБЛИКАЦИИ</p>
-              <h2>Последнее</h2>
-            </div>
-            <div id="category-filter" class="filters" aria-label="Фильтр публикаций"></div>
-          </div>
-          <div id="feed-list" class="feed-grid"></div>
-        </section>
+    <section id="about" class="glass about">
+      <p class="eyebrow">О ПРОЕКТЕ</p>
+      <p id="about-owner">
+        Этот сайт и опубликованные материалы принадлежат его владельцу.
+      </p>
+    </section>
+  </main>
 
-        <section id="about" class="glass about">
-          <p class="eyebrow">О САЙТЕ</p>
-          <h2>Пространство автора</h2>
-          <p id="about-copy">
-            Здесь собраны публикации, материалы и ссылки владельца проекта.
-          </p>
-        </section>
-      </main>
-
-      <footer>
-        <span id="footer-owner">Владелец сайта</span>
-        <span>·</span>
-        <span id="footer-note">Творческий сайт</span>
-      </footer>
-    </div>
-  </div>
+  <footer>
+    <span id="footer-owner">Владелец сайта</span>
+    <span>©</span>
+    <span id="footer-note">Все права защищены.</span>
+  </footer>
 
   <script type="module" src="./app.js"></script>
 </body>
