@@ -41,7 +41,7 @@ const brandText = make("span");
 brandText.append(make("strong", "", "Syolana"), make("small", "", "ИММЕРСИВНАЯ ПЛАТФОРМА"));
 brand.append(logo, brandText);
 
-const actions = make("div", "sy-top-actions");
+const actions = make("div", "sy-top-actions top-actions");
 const themeButton = make("button", "sy-icon-btn sy-glass", "✧");
 themeButton.id = "theme-toggle";
 themeButton.type = "button";
