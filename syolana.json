@@ -1,14 +1,16 @@
 {
-  "partnerId": "demo-partner",
+  "partnerId": "north-light-studio",
   "mode": "preview",
-  "coreUrl": "../Syolana-n/partner-core.js",
+  "coreSource": "https://raw.githubusercontent.com/Ill-27/Syolana-n/main/",
+  "platformUrl": "https://ill-27.github.io/Syolana-n/",
   "licenseEndpoint": "",
+  "refresh": "daily",
+  "offboarding": "clean",
   "features": {
     "immersiveTheme": true,
     "player": true,
-    "reader": true,
+    "zen": true,
+    "banner": true,
     "publishing": true
-  },
-  "previewActive": true,
-  "theme": "aurora"
+  }
 }
