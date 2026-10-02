@@ -3,7 +3,9 @@ import path from "node:path";
 
 const root = process.cwd();
 const dist = path.resolve(root, process.env.DIST_DIR || ".dist");
-const integration = JSON.parse(await readFile(path.join(root, "syolana.json"), "utf8"));
+const integration = JSON.parse(
+  await readFile(path.join(root, "syolana.json"), "utf8"),
+);
 const mode = process.env.SYOLANA_FORCE_MODE || integration.mode || "inactive";
 const active = mode === "preview" || mode === "active";
 
@@ -15,7 +17,14 @@ const copy = async (from, to) => {
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 
-for (const file of ["index.html", "app.js", "styles.css", "partner.json", "feed.json", "robots.txt"]) {
+for (const file of [
+  "index.html",
+  "app.js",
+  "styles.css",
+  "partner.json",
+  "feed.json",
+  "robots.txt",
+]) {
   await copy(path.join(root, file), path.join(dist, file));
 }
 
@@ -26,76 +35,91 @@ try {
 let html = await readFile(path.join(dist, "index.html"), "utf8");
 
 if (active) {
-  const source = String(integration.coreSource || "").replace(/\/+$/, "") + "/";
-  const platformUrl = String(integration.platformUrl || "").replace(/\/+$/, "") + "/";
+  const source =
+    String(integration.coreSource || "").replace(/\/+$/, "") + "/";
+  const coreUrl = String(integration.coreUrl || "").trim();
 
-  if (!/^https:\/\//.test(source) || !/^https:\/\//.test(platformUrl)) {
-    throw new Error("Active integration requires HTTPS coreSource and platformUrl");
+  if (!/^https:\/\//.test(source) || !/^https:\/\//.test(coreUrl)) {
+    throw new Error(
+      "Active integration requires HTTPS coreSource and coreUrl",
+    );
   }
 
+  // The neutral source never contains platform branding. The active build
+  // receives one mount point and one loader only while access is enabled.
   html = html.replace(
-    "</head>",
-    '  <link rel="stylesheet" href="./syolana-active.css" />\n</head>'
+    '<main id="top">',
+    '<div id="platform-banner-slot"></div>\n\n      <main id="top">',
   );
   html = html.replace(
     "</body>",
-    '  <script type="module" src="./syolana-active.js"></script>\n</body>'
+    '  <script type="module" src="./platform-active.js"></script>\n</body>',
   );
 
-  await copy(
-    path.join(root, "integration", "syolana-active.css"),
-    path.join(dist, "syolana-active.css")
+  const loader = `const partner = await fetch("./partner.json", { cache: "no-store" }).then((r) => r.json());
+try {
+  const core = await import(${JSON.stringify(coreUrl)});
+  await core.mountPartnerCore({
+    partnerName: partner.name,
+    partnerId: ${JSON.stringify(integration.partnerId || "")},
+    features: ${JSON.stringify(integration.features || {})},
+  });
+} catch (error) {
+  console.warn("Optional immersive layer unavailable", error);
+}`;
+
+  await writeFile(
+    path.join(dist, "platform-active.js"),
+    loader + "\n",
+    "utf8",
   );
-  await copy(
-    path.join(root, "integration", "syolana-active.js"),
-    path.join(dist, "syolana-active.js")
+
+  // The theme runtime itself stays central. Only theme manifests/modules that
+  // ThemeEngine resolves against the partner origin are mirrored at build time.
+  const manifestResponse = await fetch(source + "themes/manifest.json", {
+    redirect: "follow",
+  });
+  if (!manifestResponse.ok) {
+    throw new Error(
+      `Theme manifest sync failed (${manifestResponse.status})`,
+    );
+  }
+  const manifestText = await manifestResponse.text();
+  const manifest = JSON.parse(manifestText);
+  await mkdir(path.join(dist, "themes"), { recursive: true });
+  await writeFile(
+    path.join(dist, "themes", "manifest.json"),
+    manifestText,
+    "utf8",
   );
 
-  const textAssets = [
-    "themes.js",
-    "utils.js",
-    "themes/manifest.json",
-    "themes/aurora.js",
-    "themes/golden.js",
-    "themes/moon.js",
-    "themes/white-ocean-city.js",
-    "assets/logo.svg",
-    "config.json",
-  ];
+  for (const item of manifest) {
+    const moduleName = String(item?.module || "")
+      .replace(/^\.\//, "")
+      .replace(/^\/+/, "");
 
-  for (const relative of textAssets) {
-    const response = await fetch(source + relative, { redirect: "follow" });
-    if (!response.ok) throw new Error(`Core sync failed: ${relative} (${response.status})`);
-    const body = await response.text();
-
-    if (relative === "config.json") {
-      const config = JSON.parse(body);
-      const songs = (Array.isArray(config.songs) ? config.songs : []).map((song) => ({
-        ...song,
-        src: new URL(song.src, platformUrl).href,
-        sourceUrl: song.sourceUrl ? new URL(song.sourceUrl, platformUrl).href : "",
-      }));
-      const runtime = {
-        platformUrl,
-        banner: config.banner || {},
-        songs,
-        syncedAt: new Date().toISOString(),
-      };
-      await mkdir(path.join(dist, "_syolana"), { recursive: true });
-      await writeFile(
-        path.join(dist, "_syolana", "runtime.json"),
-        JSON.stringify(runtime, null, 2) + "\n",
-        "utf8"
-      );
-      continue;
+    if (!/^[a-z0-9._-]+\.js$/i.test(moduleName)) {
+      throw new Error("Unsafe theme module name: " + moduleName);
     }
 
-    const target = path.join(dist, relative);
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, body, "utf8");
+    const response = await fetch(source + "themes/" + moduleName, {
+      redirect: "follow",
+    });
+    if (!response.ok) {
+      throw new Error(
+        `Theme sync failed: ${moduleName} (${response.status})`,
+      );
+    }
+
+    await writeFile(
+      path.join(dist, "themes", moduleName),
+      await response.text(),
+      "utf8",
+    );
   }
 
-  // Only the audio used directly by the current theme package is mirrored.
+  // Current visual themes use these optional ambient files. Keeping them in
+  // the active artifact makes the theme self-contained on the partner origin.
   const binaryAssets = [
     "audio-library/nature/ocean_waves.ogg",
     "audio-library/nature/wind_soft.ogg",
@@ -108,11 +132,18 @@ if (active) {
 
   for (const relative of binaryAssets) {
     const response = await fetch(source + relative, { redirect: "follow" });
-    if (!response.ok) throw new Error(`Asset sync failed: ${relative} (${response.status})`);
-    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (!response.ok) {
+      throw new Error(
+        `Asset sync failed: ${relative} (${response.status})`,
+      );
+    }
+
     const target = path.join(dist, relative);
     await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, bytes);
+    await writeFile(
+      target,
+      new Uint8Array(await response.arrayBuffer()),
+    );
   }
 }
 
@@ -122,27 +153,40 @@ async function collectFiles(dir) {
   const result = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) result.push(...await collectFiles(full));
+    if (entry.isDirectory()) result.push(...(await collectFiles(full)));
     else result.push(full);
   }
   return result;
 }
 
 if (!active) {
-  const textExtensions = new Set([".html", ".js", ".css", ".json", ".txt", ".xml", ".svg"]);
+  const textExtensions = new Set([
+    ".html",
+    ".js",
+    ".css",
+    ".json",
+    ".txt",
+    ".xml",
+    ".svg",
+  ]);
   const leaks = [];
+
   for (const file of await collectFiles(dist)) {
     if (!textExtensions.has(path.extname(file).toLowerCase())) continue;
     const body = await readFile(file, "utf8");
     if (/syolana/i.test(body)) leaks.push(path.relative(dist, file));
   }
+
   if (leaks.length) {
-    throw new Error("Clean offboarding failed; brand references remain in: " + leaks.join(", "));
+    throw new Error(
+      "Clean offboarding failed; platform brand references remain in: " +
+        leaks.join(", "),
+    );
   }
 }
 
 console.log(
   active
-    ? "Built active partner site with freshly synced platform assets."
-    : "Built clean independent partner site with no platform brand references."
+    ? "Built active partner site with centrally supplied immersive themes."
+    : "Built clean independent partner site with no platform brand references.",
 );
