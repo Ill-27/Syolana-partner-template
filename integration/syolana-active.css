@@ -252,3 +252,28 @@ body.sy-zen #fullscreen{opacity:.76}
   .flight-hint{bottom:112px;max-width:calc(100% - 42px);white-space:normal;text-align:center}
 }
 @media(prefers-reduced-motion:reduce){.aurora-layer{animation:none}}
+
+
+/* Compatibility for controls created by centrally supplied theme modules. */
+.syolana-active .top-actions .icon-btn,
+.syolana-active .theme-sound-toggle {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:47px;
+  height:47px;
+  padding:0;
+  border:1px solid rgba(224,211,255,.19);
+  border-radius:50%;
+  color:#f4eeff;
+  background:rgba(var(--surface),.76);
+  backdrop-filter:blur(14px) saturate(125%);
+  -webkit-backdrop-filter:blur(14px) saturate(125%);
+  box-shadow:0 20px 65px #00000030,inset 0 1px 0 #ffffff17;
+}
+.syolana-active .theme-sound-toggle svg{width:21px;height:21px}
+
+@media(max-width:700px){
+  .syolana-active .top-actions .icon-btn,
+  .syolana-active .theme-sound-toggle{width:52px;height:52px}
+}
