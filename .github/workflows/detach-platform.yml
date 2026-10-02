@@ -1,0 +1,30 @@
+name: Detach optional platform layer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  detach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Remove the optional integration
+        run: node scripts/detach-platform.mjs
+      - name: Commit standalone site
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Already detached."
+            exit 0
+          fi
+          git config user.name "Syolana automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Detach optional platform layer"
+          git push
