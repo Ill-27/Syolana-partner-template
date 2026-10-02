@@ -25,7 +25,7 @@ function renderPartner(partner) {
   setText("#partner-tagline", partner.tagline);
   setText("#partner-description", partner.description);
   setText("#footer-owner", partner.ownerDisplayName || partner.name);
-  document.title = `${partner.name} · Syolana`;
+  document.title = partner.name;
 
   const links = document.querySelector("#partner-links");
   links.replaceChildren();
