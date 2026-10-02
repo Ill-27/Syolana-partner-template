@@ -151,62 +151,6 @@ function renderFeed(posts, category = "Все") {
   }
 }
 
-async function entitlementAllows(config, partner) {
-  if (!config || config.mode === "off") return false;
-  if (config.mode === "preview") return true;
-  if (config.mode !== "active") return false;
-
-  const endpoint = safeLink(config.licenseEndpoint);
-  if (!endpoint || !/^https:/i.test(endpoint)) return false;
-
-  try {
-    const url = new URL(endpoint);
-    url.searchParams.set("partnerId", config.partnerId || partner.id || "");
-    url.searchParams.set("hostname", location.hostname);
-
-    const response = await fetch(url, {
-      method: "GET",
-      cache: "no-store",
-      credentials: "omit",
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) return false;
-
-    const data = await response.json();
-    return data?.active === true;
-  } catch {
-    return false;
-  }
-}
-
-async function mountOptionalPlatformLayer(partner) {
-  let config;
-  try {
-    config = await readJSON("./syolana.json");
-  } catch {
-    return;
-  }
-
-  if (!(await entitlementAllows(config, partner))) return;
-
-  const coreUrl = safeLink(config.coreUrl);
-  if (!coreUrl || !/^https:/i.test(coreUrl)) return;
-
-  try {
-    const module = await import(coreUrl);
-    if (typeof module.mountPartnerCore !== "function") return;
-
-    await module.mountPartnerCore({
-      headerSelector: ".site-header",
-      mainSelector: "main",
-      partnerId: config.partnerId || partner.id,
-      features: config.features || {},
-    });
-  } catch (error) {
-    console.warn("Optional platform layer unavailable", error);
-  }
-}
-
 async function boot() {
   try {
     const [partner, feed] = await Promise.all([
@@ -222,10 +166,6 @@ async function boot() {
 
     renderFilters(posts, partner, (category) => renderFeed(posts, category));
     renderFeed(posts);
-
-    // The external visual layer is optional. If access is off or the
-    // entitlement check fails, this site remains a normal independent site.
-    mountOptionalPlatformLayer(partner);
   } catch (error) {
     console.error(error);
     setText("#partner-name", "Сайт временно недоступен");
