@@ -32,11 +32,15 @@ jobs:
           node-version: "22"
       - name: Validate content and build feed
         run: node scripts/build-feed.mjs
-      - name: Check integration config
+      - name: Check optional integration config
         shell: bash
         run: |
           node - <<'NODE'
           const fs = require("fs");
+          if (!fs.existsSync("integration.json")) {
+            console.log("Standalone site: no integration config.");
+            process.exit(0);
+          }
           const cfg = JSON.parse(fs.readFileSync("integration.json", "utf8"));
           const modes = new Set(["off","preview","active"]);
           if (!modes.has(cfg.mode)) throw new Error("integration.json: invalid mode");
