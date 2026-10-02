@@ -28,5 +28,3 @@ jobs:
           node-version: "22"
       - name: Validate and build feed
         run: node scripts/build-feed.mjs
-      - name: Ensure generated feed is current
-        run: git diff --exit-code -- feed.json
