@@ -277,3 +277,100 @@ body.sy-zen #fullscreen{opacity:.76}
   .syolana-active .top-actions .icon-btn,
   .syolana-active .theme-sound-toggle{width:52px;height:52px}
 }
+
+
+/* Partner content keeps its own identity while matching the Syolana design language. */
+body.syolana-active .brand{
+  color:#f7f2fb;
+  text-decoration:none;
+}
+body.syolana-active .brand-mark{
+  border-color:#dccbff48;
+  background:linear-gradient(145deg,#b68eff17,#83cfff0d),rgba(var(--surface),.8);
+  color:var(--accent);
+  box-shadow:inset 0 1px 0 #ffffff0e,0 0 26px #ad8de61b;
+}
+body.syolana-active .site-header nav a{
+  padding:8px 13px;
+  border:1px solid transparent;
+  border-radius:999px;
+  color:#ddd3e5;
+  transition:background .25s,border-color .25s,color .25s;
+}
+body.syolana-active .site-header nav a:hover{
+  color:#fff;
+  border-color:#d9c7ff2f;
+  background:#d3b6ff0d;
+}
+body.syolana-active .hero{
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 88% 8%,#b88fff13,transparent 32%),
+    linear-gradient(135deg,#ffffff05,transparent 60%),
+    rgba(var(--surface),.68);
+}
+body.syolana-active .hero .eyebrow,
+body.syolana-active .section .eyebrow,
+body.syolana-active .about .eyebrow{
+  color:var(--accent);
+  letter-spacing:.16em;
+}
+body.syolana-active .actions a{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 16px;
+  border-radius:999px;
+  border-color:#d9c7ff3e;
+  background:linear-gradient(120deg,#ae8cdf22,#6c82b713),rgba(var(--surface),.82);
+}
+body.syolana-active .filter{
+  border-color:#dac9ff2f;
+  background:rgba(var(--surface),.72);
+  color:#dcd3e5;
+}
+body.syolana-active .filter[aria-pressed="true"]{
+  border-color:var(--accent);
+  color:#fff;
+  background:linear-gradient(120deg,#a983d433,#6c82b71f),rgba(var(--surface),.84);
+  box-shadow:inset 0 0 0 1px #ffffff08;
+}
+body.syolana-active .feed-grid{gap:18px}
+body.syolana-active .post{
+  position:relative;
+  overflow:hidden;
+  border-color:#e0d3ff31;
+  background:
+    linear-gradient(135deg,#ffffff05,transparent 58%),
+    rgba(var(--surface),.72);
+  box-shadow:0 18px 52px #0000002b,inset 0 1px 0 #ffffff0d;
+}
+body.syolana-active .post::before{
+  content:"";
+  position:absolute;
+  left:18px;right:18px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,#d9c4ff66,transparent);
+}
+body.syolana-active .post .meta{
+  color:var(--accent);
+  font-family:var(--interface);
+  font-weight:650;
+  letter-spacing:.09em;
+}
+body.syolana-active .about{
+  border-radius:20px;
+  background:rgba(var(--surface),.58);
+}
+
+@media(max-width:700px){
+  body.syolana-active .site-header{
+    width:calc(100% - 32px);
+    padding:12px;
+    gap:12px;
+  }
+  body.syolana-active .site-header nav{gap:4px}
+  body.syolana-active .site-header nav a{padding:7px 9px;font-size:.78rem}
+  body.syolana-active .hero{padding:28px 22px}
+  body.syolana-active .post{padding:20px}
+}
