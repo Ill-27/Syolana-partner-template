@@ -1,0 +1,64 @@
+name: Queue partner post for review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "posts/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  queue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate proposed post
+        run: node scripts/build-feed.mjs
+
+      - name: Mark as needing review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+
+            const labels = [
+              {
+                name: "needs-review",
+                color: "d9b7ff",
+                description: "Публикация ожидает проверки"
+              }
+            ];
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner,
+                  repo,
+                  name: label.name
+                });
+              } catch {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  ...label
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: ["needs-review"]
+            });
