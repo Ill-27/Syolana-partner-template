@@ -1,12 +1,14 @@
 {
   "partnerId": "demo-partner",
   "mode": "preview",
-  "coreUrl": "",
+  "coreUrl": "../Syolana-n/partner-core.js",
   "licenseEndpoint": "",
   "features": {
     "immersiveTheme": true,
     "player": true,
     "reader": true,
     "publishing": true
-  }
+  },
+  "previewActive": true,
+  "theme": "aurora"
 }
