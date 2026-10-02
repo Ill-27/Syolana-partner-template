@@ -29,7 +29,9 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site
-          cp index.html app.js platform-loader.js styles.css partner.json integration.json feed.json robots.txt _site/
+          cp index.html app.js styles.css partner.json feed.json robots.txt _site/
+          if [ -f platform-loader.js ]; then cp platform-loader.js _site/; fi
+          if [ -f integration.json ]; then cp integration.json _site/; fi
           if [ -d media ]; then cp -R media _site/media; fi
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
