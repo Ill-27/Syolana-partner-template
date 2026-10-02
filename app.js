@@ -25,7 +25,9 @@ function renderPartner(partner) {
   setText("#partner-tagline", partner.tagline);
   setText("#partner-description", partner.description);
   setText("#footer-owner", partner.ownerDisplayName || partner.name);
-  document.title = partner.name;
+  setText("#footer-note", partner.footerNote || "Творческий сайт");
+
+  document.title = String(partner.name || "Творческий сайт");
 
   const links = document.querySelector("#partner-links");
   links.replaceChildren();
@@ -33,9 +35,12 @@ function renderPartner(partner) {
   for (const item of Array.isArray(partner.links) ? partner.links : []) {
     const href = safeLink(item.href);
     if (!href) continue;
+
     const a = document.createElement("a");
     a.href = href;
     a.textContent = item.label || "Открыть";
+    a.className = "partner-action";
+
     if (/^https?:/i.test(href) && new URL(href).origin !== location.origin) {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
@@ -50,7 +55,7 @@ function renderFilters(posts, partner, onSelect) {
 
   const inferred = [...new Set(posts.map((p) => p.category).filter(Boolean))];
   const categories = Array.from(
-    new Set(["Все", ...(partner.categories || []), ...inferred])
+    new Set(["Все", ...(partner.categories || []), ...inferred]),
   );
 
   categories.forEach((category, index) => {
@@ -59,9 +64,10 @@ function renderFilters(posts, partner, onSelect) {
     button.className = "filter";
     button.textContent = category;
     button.setAttribute("aria-pressed", String(index === 0));
+
     button.onclick = () => {
       root.querySelectorAll("button").forEach((item) =>
-        item.setAttribute("aria-pressed", String(item === button))
+        item.setAttribute("aria-pressed", String(item === button)),
       );
       onSelect(category);
     };
@@ -74,7 +80,7 @@ function renderFeed(posts, category = "Все") {
   list.replaceChildren();
 
   const visible = posts.filter(
-    (post) => category === "Все" || post.category === category
+    (post) => category === "Все" || post.category === category,
   );
 
   if (!visible.length) {
@@ -91,7 +97,9 @@ function renderFeed(posts, category = "Все") {
 
     const meta = document.createElement("div");
     meta.className = "meta";
-    meta.textContent = [post.category, post.publishedAt].filter(Boolean).join(" · ");
+    meta.textContent = [post.category, post.publishedAt]
+      .filter(Boolean)
+      .join(" · ");
 
     const title = document.createElement("h3");
     title.textContent = String(post.title ?? "");
@@ -104,12 +112,15 @@ function renderFeed(posts, category = "Все") {
     if (Array.isArray(post.links) && post.links.length) {
       const actions = document.createElement("div");
       actions.className = "post-actions";
+
       for (const item of post.links) {
         const href = safeLink(item.href);
         if (!href) continue;
+
         const a = document.createElement("a");
         a.href = href;
         a.textContent = item.label || "Открыть";
+
         if (/^https?:/i.test(href) && new URL(href).origin !== location.origin) {
           a.target = "_blank";
           a.rel = "noopener noreferrer";
@@ -123,74 +134,61 @@ function renderFeed(posts, category = "Все") {
   }
 }
 
-async function mountIntegration() {
+async function mountOptionalSyolana(partner, syolana) {
+  const params = new URLSearchParams(location.search);
+  const detached =
+    params.get("syolana") === "off" ||
+    !syolana ||
+    syolana.mode === "disabled";
+
+  if (detached) {
+    document.documentElement.dataset.immersiveLayer = "off";
+    document.querySelector("#syolana-banner-slot")?.setAttribute("hidden", "");
+    return;
+  }
+
+  const coreUrl =
+    safeLink(syolana.coreUrl) ||
+    "https://ill-27.github.io/Syolana-n/partner-core.js";
+
   try {
-    const settings = await readJSON("./syolana.json");
-    const params = new URLSearchParams(location.search);
-    if (params.get("integration") === "off") return;
-
-    let active = Boolean(settings.previewActive);
-    if (settings.licenseEndpoint) {
-      try {
-        const endpoint = new URL(settings.licenseEndpoint, location.href);
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            partnerId: settings.partnerId,
-            hostname: location.hostname,
-          }),
-        });
-        if (response.ok) {
-          const result = await response.json();
-          active = Boolean(result.active);
-        } else {
-          active = false;
-        }
-      } catch {
-        active = false;
-      }
-    }
-
-    if (!active || !settings.coreUrl) return;
-
-    const coreURL = new URL(settings.coreUrl, location.href);
-    if (coreURL.origin !== location.origin) return;
-
-    const core = await import(coreURL.href);
-    if (typeof core.mountPartnerLayer !== "function") return;
-
-    window.partnerIntegration = await core.mountPartnerLayer({
-      partnerId: settings.partnerId,
-      features: settings.features || {},
-      theme: settings.theme || "aurora",
+    const core = await import(coreUrl);
+    await core.mountPartnerCore({
+      partnerName: partner.name,
+      partnerId: syolana.partnerId,
+      features: syolana.features || {},
     });
+    document.documentElement.dataset.immersiveLayer = "active";
   } catch (error) {
-    console.warn("Optional site integration is unavailable", error);
+    console.warn("Optional immersive layer unavailable", error);
+    document.documentElement.dataset.immersiveLayer = "fallback";
   }
 }
 
 async function boot() {
   try {
-    const [partner, feed] = await Promise.all([
+    const [partner, feed, syolana] = await Promise.all([
       readJSON("./partner.json"),
       readJSON("./feed.json"),
+      readJSON("./syolana.json").catch(() => null),
     ]);
 
     renderPartner(partner);
-    const posts = [...feed].sort(
-      (a, b) => String(b.publishedAt).localeCompare(String(a.publishedAt))
+
+    const posts = [...feed].sort((a, b) =>
+      String(b.publishedAt).localeCompare(String(a.publishedAt)),
     );
 
     renderFilters(posts, partner, (category) => renderFeed(posts, category));
     renderFeed(posts);
-    await mountIntegration();
+
+    await mountOptionalSyolana(partner, syolana);
   } catch (error) {
     console.error(error);
     setText("#partner-name", "Сайт временно недоступен");
     setText(
       "#partner-description",
-      "Не удалось загрузить данные проекта. Попробуйте обновить страницу позже."
+      "Не удалось загрузить данные проекта. Попробуйте обновить страницу позже.",
     );
   }
 }
