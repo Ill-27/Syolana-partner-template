@@ -232,11 +232,6 @@ footer{
   font-size:.78rem;
 }
 
-/* The inactive/detached site deliberately stays neutral and contains no Syolana UI. */
-html[data-immersive-layer="off"] #syolana-banner-slot,
-html[data-immersive-layer="fallback"] #syolana-banner-slot{
-  display:none!important;
-}
 
 @media(max-width:680px){
   .partner-site-header{align-items:flex-start}
