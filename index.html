@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Партнёрский сайт на базе Syolana" />
+  <title>Syolana Partner</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="На главную">
+      <span class="brand-mark">SY</span>
+      <span id="brand-name">Partner</span>
+    </a>
+    <nav aria-label="Основная навигация">
+      <a href="#feed">Публикации</a>
+      <a href="#about">О проекте</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero glass">
+      <p class="eyebrow">ПАРТНЁР SYOLANA</p>
+      <h1 id="partner-name">Загрузка…</h1>
+      <p id="partner-tagline" class="tagline"></p>
+      <p id="partner-description" class="description"></p>
+      <div id="partner-links" class="actions"></div>
+    </section>
+
+    <section id="feed" class="section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ПУБЛИКАЦИИ</p>
+          <h2>Последнее</h2>
+        </div>
+        <div id="category-filter" class="filters" aria-label="Фильтр публикаций"></div>
+      </div>
+      <div id="feed-list" class="feed-grid"></div>
+    </section>
+
+    <section id="about" class="glass about">
+      <p class="eyebrow">О САЙТЕ</p>
+      <p>
+        Домен, хостинг и материалы принадлежат владельцу этого сайта.
+        Syolana предоставляет подключаемое оформление и иммерсивные функции.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <span id="footer-owner">Владелец сайта</span>
+    <span>·</span>
+    <span>Powered by Syolana</span>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
