@@ -123,6 +123,53 @@ function renderFeed(posts, category = "Все") {
   }
 }
 
+async function mountIntegration() {
+  try {
+    const settings = await readJSON("./syolana.json");
+    const params = new URLSearchParams(location.search);
+    if (params.get("integration") === "off") return;
+
+    let active = Boolean(settings.previewActive);
+    if (settings.licenseEndpoint) {
+      try {
+        const endpoint = new URL(settings.licenseEndpoint, location.href);
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            partnerId: settings.partnerId,
+            hostname: location.hostname,
+          }),
+        });
+        if (response.ok) {
+          const result = await response.json();
+          active = Boolean(result.active);
+        } else {
+          active = false;
+        }
+      } catch {
+        active = false;
+      }
+    }
+
+    if (!active || !settings.coreUrl) return;
+
+    const coreURL = new URL(settings.coreUrl, location.href);
+    if (coreURL.origin !== location.origin) return;
+
+    const core = await import(coreURL.href);
+    if (typeof core.mountPartnerLayer !== "function") return;
+
+    window.partnerIntegration = await core.mountPartnerLayer({
+      partnerId: settings.partnerId,
+      features: settings.features || {},
+      theme: settings.theme || "aurora",
+    });
+  } catch (error) {
+    console.warn("Optional site integration is unavailable", error);
+  }
+}
+
 async function boot() {
   try {
     const [partner, feed] = await Promise.all([
@@ -137,6 +184,7 @@ async function boot() {
 
     renderFilters(posts, partner, (category) => renderFeed(posts, category));
     renderFeed(posts);
+    await mountIntegration();
   } catch (error) {
     console.error(error);
     setText("#partner-name", "Сайт временно недоступен");
