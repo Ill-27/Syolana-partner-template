@@ -3,17 +3,7 @@ name: Validate partner content
 on:
   push:
     branches: [main]
-    paths:
-      - "partner.json"
-      - "syolana.json"
-      - "posts/**"
-      - "scripts/build-feed.mjs"
   pull_request:
-    paths:
-      - "partner.json"
-      - "syolana.json"
-      - "posts/**"
-      - "scripts/build-feed.mjs"
 
 permissions:
   contents: read
@@ -26,5 +16,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+
       - name: Validate and build feed
         run: node scripts/build-feed.mjs
+
+      - name: Build active integration
+        run: node scripts/build-site.mjs
+
+      - name: Prove clean offboarding
+        env:
+          SYOLANA_FORCE_MODE: inactive
+          DIST_DIR: .dist-off
+        run: node scripts/build-site.mjs
+
+      - name: Verify independent build has no platform brand
+        shell: bash
+        run: |
+          if grep -Rni --exclude-dir=media --exclude='*.ogg' --exclude='*.m4a' 'syolana' .dist-off; then
+            echo "Brand reference found in independent build"
+            exit 1
+          fi
+          echo "Independent build is clean."
