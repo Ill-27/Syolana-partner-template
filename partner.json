@@ -1,0 +1,15 @@
+{
+  "id": "demo-partner",
+  "name": "Имя проекта",
+  "tagline": "Коротко о вашем мире",
+  "description": "Здесь будет описание автора, студии или проекта.",
+  "ownerDisplayName": "Владелец сайта",
+  "contactUrl": "",
+  "links": [],
+  "categories": [
+    "Все",
+    "Новости",
+    "Творчество"
+  ],
+  "footerNote": "Сайт партнёра Syolana"
+}
