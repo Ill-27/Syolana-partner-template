@@ -8,5 +8,6 @@
     "player": true,
     "reader": true,
     "publishing": true
-  }
+  },
+  "coreVersion": "1"
 }
