@@ -134,43 +134,11 @@ function renderFeed(posts, category = "Все") {
   }
 }
 
-async function mountOptionalSyolana(partner, syolana) {
-  const params = new URLSearchParams(location.search);
-  const detached =
-    params.get("syolana") === "off" ||
-    !syolana ||
-    syolana.mode === "disabled";
-
-  if (detached) {
-    document.documentElement.dataset.immersiveLayer = "off";
-    document.querySelector("#syolana-banner-slot")?.setAttribute("hidden", "");
-    return;
-  }
-
-  const coreUrl =
-    safeLink(syolana.coreUrl) ||
-    "https://ill-27.github.io/Syolana-n/partner-core.js";
-
-  try {
-    const core = await import(coreUrl);
-    await core.mountPartnerCore({
-      partnerName: partner.name,
-      partnerId: syolana.partnerId,
-      features: syolana.features || {},
-    });
-    document.documentElement.dataset.immersiveLayer = "active";
-  } catch (error) {
-    console.warn("Optional immersive layer unavailable", error);
-    document.documentElement.dataset.immersiveLayer = "fallback";
-  }
-}
-
 async function boot() {
   try {
-    const [partner, feed, syolana] = await Promise.all([
+    const [partner, feed] = await Promise.all([
       readJSON("./partner.json"),
       readJSON("./feed.json"),
-      readJSON("./syolana.json").catch(() => null),
     ]);
 
     renderPartner(partner);
@@ -181,8 +149,6 @@ async function boot() {
 
     renderFilters(posts, partner, (category) => renderFeed(posts, category));
     renderFeed(posts);
-
-    await mountOptionalSyolana(partner, syolana);
   } catch (error) {
     console.error(error);
     setText("#partner-name", "Сайт временно недоступен");
