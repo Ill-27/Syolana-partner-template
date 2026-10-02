@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -26,14 +24,17 @@ jobs:
           node-version: "22"
       - name: Validate and build feed
         run: node scripts/build-feed.mjs
-      - name: Build deployable site
-        run: node scripts/build-site.mjs
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-      - name: Upload deployable site
+      - name: Build public site artifact
+        shell: bash
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp index.html app.js platform-loader.js styles.css partner.json integration.json feed.json robots.txt _site/
+          if [ -d media ]; then cp -R media _site/media; fi
+      - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ".dist"
+          path: "_site"
 
   deploy:
     environment:
