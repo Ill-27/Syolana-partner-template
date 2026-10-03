@@ -60,12 +60,9 @@ function renderPartner(partner) {
   const links = document.querySelector("#partner-links");
   links.replaceChildren();
 
-  const allLinks = [
-    ...(Array.isArray(partner.links) ? partner.links : []),
-    ...(Array.isArray(partner.contacts) ? partner.contacts : []),
-  ];
+  const heroLinks = Array.isArray(partner.links) ? partner.links : [];
 
-  for (const item of allLinks) {
+  for (const item of heroLinks) {
     const href = safeLink(item.href);
     if (!href) continue;
 
@@ -74,13 +71,52 @@ function renderPartner(partner) {
     a.className = item.primary ? "action primary" : "action";
     a.textContent = item.label || "Открыть";
 
-    if (item.type) a.dataset.contactType = item.type;
-
     if (/^https?:/i.test(href) && new URL(href).origin !== location.origin) {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
     }
     links.append(a);
+  }
+
+  const contactsRoot = document.querySelector("#partner-contacts");
+  const contactsPanel = document.querySelector("#contact");
+  const contacts = (Array.isArray(partner.contacts) ? partner.contacts : [])
+    .map((item) => ({ ...item, href: safeLink(item.href) }))
+    .filter((item) => item.href);
+
+  contactsRoot?.replaceChildren();
+  contactsPanel?.toggleAttribute("hidden", !contacts.length);
+
+  const icon = {
+    email:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h17v11h-17z"/><path d="m4 7 8 6 8-6"/></svg>',
+    vk:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7.5c.6 5.3 3.3 8.3 8 8.3h.8v-3c1.8.2 3.2 1.5 3.8 3h2.5c-.8-1.8-2.1-3.3-3.8-4.2 1.5-.9 2.7-2.3 3.4-4.1h-2.4c-.7 1.7-1.9 3-3.5 3.5V7.5h-2.2v6c-2.6-.6-3.9-2.6-4.2-6H5Z"/></svg>',
+    avito:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="7" r="2.2"/><circle cx="7" cy="17" r="2.2"/><circle cx="17" cy="17" r="2.2"/></svg>',
+  };
+
+  for (const item of contacts) {
+    const a = document.createElement("a");
+    a.href = item.href;
+    a.className = "contact-action contact-" + (item.type || "link");
+    a.dataset.contactType = item.type || "link";
+
+    const badge = document.createElement("span");
+    badge.className = "contact-icon";
+    badge.innerHTML = icon[item.type] || "↗";
+
+    const label = document.createElement("span");
+    label.className = "contact-label";
+    label.textContent = item.label || "Связаться";
+
+    a.append(badge, label);
+
+    if (/^https?:/i.test(item.href) && new URL(item.href).origin !== location.origin) {
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+    }
+    contactsRoot?.append(a);
   }
 }
 
