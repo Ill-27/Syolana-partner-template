@@ -158,4 +158,5 @@ async function bootIntegration() {
   }
 }
 
+window.addEventListener("syolana:shell-ready", finishBoot, { once: true });
 bootIntegration().catch(() => finishBoot());
