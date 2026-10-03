@@ -36,41 +36,7 @@
     },4500);
   </script>
   <link rel="stylesheet" href="./styles.css" />
-  <style id="partner-boot-style">
-    html.partner-booting body { overflow: hidden; }
-    html.partner-booting body > :not(#partner-boot) {
-      visibility: hidden !important;
-    }
-    #partner-boot {
-      position: fixed;
-      inset: 0;
-      z-index: 2147483000;
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at 50% 42%, rgba(156, 120, 210, .10), transparent 34%),
-        #030309;
-      opacity: 1;
-      transition: opacity .28s ease;
-    }
-    #partner-boot::before {
-      content: "";
-      width: 28px;
-      height: 28px;
-      border: 1px solid rgba(255,255,255,.18);
-      border-top-color: rgba(255,255,255,.72);
-      border-radius: 50%;
-      animation: partnerBootSpin .8s linear infinite;
-    }
-    html:not(.partner-booting) #partner-boot {
-      pointer-events: none;
-      opacity: 0;
-    }
-    @keyframes partnerBootSpin { to { transform: rotate(360deg); } }
-    @media (prefers-reduced-motion: reduce) {
-      #partner-boot::before { animation: none; }
-    }
-  </style>
+
   <noscript>
     <style>
       html.partner-booting body { overflow: auto; }
@@ -104,6 +70,14 @@
       <p id="partner-tagline" class="tagline"></p>
       <p id="partner-description" class="description"></p>
       <div id="partner-links" class="actions"></div>
+    </section>
+
+    <section id="contact" class="contact-panel glass" hidden>
+      <div>
+        <p class="eyebrow">СВЯЗАТЬСЯ</p>
+        <h2>Контакты проекта</h2>
+      </div>
+      <div id="partner-contacts" class="contact-actions" aria-label="Контакты партнёра"></div>
     </section>
 
     <section id="feed" class="section">
