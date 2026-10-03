@@ -10,6 +10,12 @@ on:
       - "scripts/build-feed.mjs"
       - "app.js"
       - "platform-loader.js"
+      - "studio/**"
+      - "backend/**"
+      - "scripts/import-vk-drafts.mjs"
+      - "studio/**"
+      - "backend/**"
+      - "scripts/import-vk-drafts.mjs"
   pull_request:
     paths:
       - "partner.json"
@@ -32,6 +38,13 @@ jobs:
           node-version: "22"
       - name: Validate content and build feed
         run: node scripts/build-feed.mjs
+      - name: Syntax-check Studio and serverless API
+        shell: bash
+        run: |
+          node --check studio/studio.js
+          node --check backend/studio-api/index.mjs
+          node --check scripts/import-vk-drafts.mjs
+
       - name: Check optional integration config
         shell: bash
         run: |
