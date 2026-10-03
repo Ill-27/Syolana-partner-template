@@ -8,22 +8,22 @@ on:
       - "integration.json"
       - "posts/**"
       - "scripts/build-feed.mjs"
+      - "scripts/import-vk-drafts.mjs"
       - "app.js"
       - "platform-loader.js"
       - "studio/**"
       - "backend/**"
-      - "scripts/import-vk-drafts.mjs"
-      - "studio/**"
-      - "backend/**"
-      - "scripts/import-vk-drafts.mjs"
   pull_request:
     paths:
       - "partner.json"
       - "integration.json"
       - "posts/**"
       - "scripts/build-feed.mjs"
+      - "scripts/import-vk-drafts.mjs"
       - "app.js"
       - "platform-loader.js"
+      - "studio/**"
+      - "backend/**"
 
 permissions:
   contents: read
@@ -36,8 +36,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+
       - name: Validate content and build feed
         run: node scripts/build-feed.mjs
+
       - name: Syntax-check Studio and serverless API
         shell: bash
         run: |
