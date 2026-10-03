@@ -1,3 +1,11 @@
+function finishBoot() {
+  document.documentElement.classList.remove("partner-booting");
+  const boot = document.getElementById("partner-boot");
+  if (boot) {
+    window.setTimeout(() => boot.remove(), 360);
+  }
+}
+
 async function readJSON(path) {
   try {
     const response = await fetch(path, { cache: "no-store" });
@@ -85,6 +93,7 @@ function loadStyle(url, marker) {
 }
 
 async function bootIntegration() {
+  try {
   const [config, partner] = await Promise.all([
     readJSON("./integration.json"),
     readJSON("./partner.json"),
@@ -144,6 +153,9 @@ async function bootIntegration() {
   } catch (error) {
     console.warn("Optional Syolana layer unavailable", error);
   }
+  } finally {
+    finishBoot();
+  }
 }
 
-bootIntegration();
+bootIntegration().catch(() => finishBoot());
