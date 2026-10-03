@@ -212,6 +212,7 @@ async function boot() {
 
     renderFilters(posts, partner, (category) => renderFeed(posts, category));
     renderFeed(posts);
+    window.__partnerBootDone?.("content");
   } catch (error) {
     console.error(error);
     setText("#partner-name", "Сайт временно недоступен");
@@ -219,6 +220,7 @@ async function boot() {
       "#partner-description",
       "Не удалось загрузить данные проекта. Попробуйте обновить страницу позже.",
     );
+    window.__partnerBootDone?.("content");
   }
 }
 
