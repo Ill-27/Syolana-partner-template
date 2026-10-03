@@ -1,8 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 
 const next = process.argv[2];
-if (!["preview", "active", "inactive"].includes(next)) {
-  throw new Error("Usage: node scripts/set-integration-mode.mjs preview|active|inactive");
+if (!["preview", "active", "off"].includes(next)) {
+  throw new Error("Usage: node scripts/set-integration-mode.mjs preview|active|off");
 }
 
 const file = new URL("../syolana.json", import.meta.url);
