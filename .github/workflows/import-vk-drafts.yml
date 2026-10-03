@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   import:
-    if: ${{ secrets.VK_ACCESS_TOKEN != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +24,22 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Check whether VK import is configured
+        id: gate
+        env:
+          VK_OWNER_ID: ${{ vars.VK_OWNER_ID }}
+          VK_ACCESS_TOKEN: ${{ secrets.VK_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          if [ -n "$VK_OWNER_ID" ] && [ -n "$VK_ACCESS_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "VK import is not configured; skipping."
+          fi
+
       - name: Import public posts from partner-owned VK wall
+        if: steps.gate.outputs.enabled == 'true'
         env:
           VK_OWNER_ID: ${{ vars.VK_OWNER_ID }}
           VK_ACCESS_TOKEN: ${{ secrets.VK_ACCESS_TOKEN }}
@@ -34,6 +48,7 @@ jobs:
         run: node scripts/import-vk-drafts.mjs
 
       - name: Commit new drafts
+        if: steps.gate.outputs.enabled == 'true'
         shell: bash
         run: |
           if [ -z "$(git status --porcelain -- drafts/vk)" ]; then
