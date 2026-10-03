@@ -99,29 +99,40 @@ async function bootIntegration() {
   const coreUrl = safeHttps(config.coreUrl);
   if (!coreUrl) return;
 
-  const build = String(Date.now());
+  const base = new URL("./", coreUrl);
+
+  let build = String(config.coreVersion || "live");
+  try {
+    const versionResponse = await fetch(
+      new URL("partners/core-version.json", base),
+      { cache: "no-store", credentials: "omit", signal: AbortSignal.timeout(2500) },
+    );
+    if (versionResponse.ok) {
+      const versionData = await versionResponse.json();
+      if (versionData?.version) build = String(versionData.version);
+    }
+  } catch {}
+
   const core = new URL(coreUrl);
   core.searchParams.set("v", build);
 
-  const base = new URL("./", coreUrl);
   const mainCss = new URL("styles.css", base);
   const fontsCss = new URL("assets/fonts/fonts.css", base);
   const adapterCss = new URL("partner-core.css", base);
 
-  // Cache-bust only the CSS entry points. Font and media URLs inside them stay
-  // stable and cache efficiently.
   mainCss.searchParams.set("v", build);
   fontsCss.searchParams.set("v", build);
   adapterCss.searchParams.set("v", build);
 
-  await Promise.all([
-    loadStyle(fontsCss.href, "fonts"),
-    loadStyle(mainCss.href, "main-style"),
-  ]);
-  await loadStyle(adapterCss.href, "partner-adapter");
-
   try {
-    const module = await import(core.href);
+    const modulePromise = import(core.href);
+    const stylePromise = Promise.all([
+      loadStyle(fontsCss.href, "fonts"),
+      loadStyle(mainCss.href, "main-style"),
+      loadStyle(adapterCss.href, "partner-adapter"),
+    ]);
+
+    const [module] = await Promise.all([modulePromise, stylePromise]);
     if (typeof module.mountPartnerCore !== "function") return;
 
     await module.mountPartnerCore({
