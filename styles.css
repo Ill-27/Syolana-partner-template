@@ -409,3 +409,27 @@ footer{
 
   .filter{flex:0 0 auto}
 }
+
+
+/* Post media stays partner-owned and loads lazily. */
+.post-media {
+  margin: -4px -4px 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(var(--surface), .7);
+}
+
+.post-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.post-media figcaption {
+  padding: 9px 12px 10px;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.5;
+}
