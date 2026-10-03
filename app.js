@@ -60,7 +60,12 @@ function renderPartner(partner) {
   const links = document.querySelector("#partner-links");
   links.replaceChildren();
 
-  for (const item of Array.isArray(partner.links) ? partner.links : []) {
+  const allLinks = [
+    ...(Array.isArray(partner.links) ? partner.links : []),
+    ...(Array.isArray(partner.contacts) ? partner.contacts : []),
+  ];
+
+  for (const item of allLinks) {
     const href = safeLink(item.href);
     if (!href) continue;
 
@@ -68,6 +73,8 @@ function renderPartner(partner) {
     a.href = href;
     a.className = item.primary ? "action primary" : "action";
     a.textContent = item.label || "Открыть";
+
+    if (item.type) a.dataset.contactType = item.type;
 
     if (/^https?:/i.test(href) && new URL(href).origin !== location.origin) {
       a.target = "_blank";
