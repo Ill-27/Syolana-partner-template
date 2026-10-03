@@ -1,0 +1,7 @@
+{
+  "mode": "demo",
+  "apiEndpoint": "",
+  "auth": "server-session",
+  "maxImageMb": 8,
+  "note": "Do not put GitHub/VK/Yandex secrets in this public file."
+}
