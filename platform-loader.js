@@ -32,8 +32,12 @@ async function entitlement(config) {
   if (forcedOff || !config || ["off", "inactive"].includes(config.mode))
     return { active: false };
 
-  if (config.mode === "preview")
-    return { active: true, preview: true, features: config.features || {} };
+  if (config.mode === "preview") {
+    const localPreview = ["localhost", "127.0.0.1"].includes(location.hostname);
+    return localPreview
+      ? { active: true, preview: true, features: config.features || {} }
+      : { active: false };
+  }
 
   if (config.mode !== "active") return { active: false };
 
