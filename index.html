@@ -7,6 +7,34 @@
   <meta name="theme-color" content="#030309" />
   <meta name="description" content="Авторский сайт" />
   <title>Имя проекта</title>
+  <style id="partner-boot-critical">
+    html.partner-booting body{margin:0;background:#030309;overflow:hidden}
+    html.partner-booting body>*:not(#partner-boot){visibility:hidden}
+    #partner-boot{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,#2a173a 0,transparent 38%),#030309;transition:opacity .28s ease}
+    #partner-boot[hidden]{display:none}
+    .partner-boot-dots{display:flex;gap:9px}
+    .partner-boot-dots i{width:7px;height:7px;border-radius:50%;background:#d5b7ff;opacity:.35;animation:partnerBoot 1.15s ease-in-out infinite}
+    .partner-boot-dots i:nth-child(2){animation-delay:.14s}.partner-boot-dots i:nth-child(3){animation-delay:.28s}
+    @keyframes partnerBoot{50%{opacity:1;transform:translateY(-4px)}}
+    @media(prefers-reduced-motion:reduce){.partner-boot-dots i{animation:none}}
+  </style>
+  <script>
+    document.documentElement.classList.add("partner-booting");
+    window.__partnerBootState={content:false,platform:false};
+    window.__partnerBootDone=function(part){
+      if(window.__partnerBootState) window.__partnerBootState[part]=true;
+      const s=window.__partnerBootState||{};
+      if(!s.content||!s.platform) return;
+      const boot=document.getElementById("partner-boot");
+      if(boot){boot.style.opacity="0";setTimeout(()=>boot.remove(),300)}
+      document.documentElement.classList.remove("partner-booting");
+    };
+    setTimeout(()=>{
+      window.__partnerBootState={content:true,platform:true};
+      window.__partnerBootDone("content");
+      window.__partnerBootDone("platform");
+    },4500);
+  </script>
   <link rel="stylesheet" href="./styles.css" />
   <style id="partner-boot-style">
     html.partner-booting body { overflow: hidden; }
