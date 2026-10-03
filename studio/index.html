@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="color-scheme" content="dark" />
+  <title>Partner Studio</title>
+  <link rel="stylesheet" href="./studio.css" />
+</head>
+<body>
+  <main class="studio-shell">
+    <header class="studio-head glass">
+      <div>
+        <p class="eyebrow">PARTNER STUDIO</p>
+        <h1>Публикации без GitHub</h1>
+        <p class="lead">Создавайте, редактируйте, удаляйте и предварительно смотрите посты. Публичная отправка включится только через защищённый серверный шлюз.</p>
+      </div>
+      <a class="button secondary" href="../">Открыть сайт</a>
+    </header>
+
+    <section id="security-note" class="notice glass">
+      <strong>Безопасный режим</strong>
+      <span>В этой тестовой версии изменения сохраняются только в вашем браузере. Секретов GitHub здесь нет и быть не должно.</span>
+    </section>
+
+    <div class="studio-grid">
+      <aside class="sidebar glass">
+        <div class="sidebar-head">
+          <div>
+            <p class="eyebrow">ПУБЛИКАЦИИ</p>
+            <h2>Черновики и сайт</h2>
+          </div>
+          <button id="new-post" class="icon-button" type="button" aria-label="Новый пост">＋</button>
+        </div>
+        <div id="post-list" class="post-list"></div>
+      </aside>
+
+      <section class="editor glass">
+        <div class="editor-top">
+          <div>
+            <p id="editor-state" class="eyebrow">НОВЫЙ ЧЕРНОВИК</p>
+            <h2 id="editor-title">Новая публикация</h2>
+          </div>
+          <div class="editor-actions">
+            <button id="preview-post" class="button secondary" type="button">Предпросмотр</button>
+            <button id="delete-post" class="button danger" type="button">Удалить</button>
+          </div>
+        </div>
+
+        <form id="post-form" autocomplete="off">
+          <label>
+            <span>Заголовок</span>
+            <input id="title" name="title" maxlength="140" required placeholder="Название публикации" />
+          </label>
+
+          <div class="two">
+            <label>
+              <span>Категория</span>
+              <input id="category" name="category" maxlength="60" placeholder="Новости" />
+            </label>
+            <label>
+              <span>Дата</span>
+              <input id="publishedAt" name="publishedAt" type="date" required />
+            </label>
+          </div>
+
+          <label>
+            <span>Текст</span>
+            <textarea id="text" name="text" rows="12" maxlength="12000" required placeholder="Напишите публикацию…"></textarea>
+          </label>
+
+          <label class="media-field">
+            <span>Изображение</span>
+            <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml" />
+            <small>До подключения сервера изображение используется только в локальном предпросмотре.</small>
+          </label>
+
+          <label>
+            <span>Подпись к изображению</span>
+            <input id="caption" name="caption" maxlength="240" placeholder="Необязательно" />
+          </label>
+
+          <div class="save-row">
+            <button class="button primary" type="submit">Сохранить черновик</button>
+            <button id="publish-post" class="button" type="button">Отправить на публикацию</button>
+          </div>
+          <p id="form-status" class="status" role="status"></p>
+        </form>
+      </section>
+    </div>
+
+    <section class="contacts glass">
+      <div>
+        <p class="eyebrow">КОНТАКТЫ ПАРТНЁРА</p>
+        <h2>Почта, VK и Avito</h2>
+        <p>На публичном сайте показываются только те способы связи, которые партнёр сам включил.</p>
+      </div>
+      <div class="contact-grid">
+        <label><span>Yandex-почта</span><input id="contact-email" type="email" placeholder="name@yandex.ru" /></label>
+        <label><span>VK</span><input id="contact-vk" type="url" placeholder="https://vk.com/…" /></label>
+        <label><span>Avito</span><input id="contact-avito" type="url" placeholder="https://www.avito.ru/…" /></label>
+      </div>
+      <button id="save-contacts" class="button secondary" type="button">Сохранить локально</button>
+    </section>
+  </main>
+
+  <dialog id="preview">
+    <article class="preview-card">
+      <button class="preview-close" type="button" aria-label="Закрыть">×</button>
+      <figure id="preview-media" hidden><img alt="" /><figcaption></figcaption></figure>
+      <p id="preview-meta" class="eyebrow"></p>
+      <h2 id="preview-title"></h2>
+      <p id="preview-text"></p>
+    </article>
+  </dialog>
+
+  <script type="module" src="./studio.js"></script>
+</body>
+</html>
