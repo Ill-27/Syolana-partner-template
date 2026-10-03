@@ -433,3 +433,64 @@ footer{
   font-size: .72rem;
   line-height: 1.5;
 }
+
+
+/* Standard public contacts for every partner. */
+.contact-panel{
+  margin-top:22px;
+  padding:18px 20px;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+}
+.contact-panel h2{
+  margin:0;
+  color:var(--text);
+  font-family:var(--heading);
+  font-size:clamp(1.35rem,3vw,1.9rem);
+  font-weight:400;
+}
+.contact-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.contact-action{
+  min-height:48px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 15px 9px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:linear-gradient(135deg,#ffffff08,transparent),rgba(var(--surface),.72);
+  color:var(--text);
+  font-size:.82rem;
+  font-weight:650;
+  box-shadow:inset 0 1px 0 #ffffff10;
+  transition:transform .2s var(--ease),border-color .2s,background .2s;
+}
+.contact-action:hover,
+.contact-action:focus-visible{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--accent) 65%,transparent);
+  background:linear-gradient(135deg,#ffffff0c,transparent),rgba(var(--surface),.86);
+}
+.contact-icon{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:50%;background:#ffffff08;color:var(--accent);
+}
+.contact-icon svg{
+  width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.contact-vk .contact-icon svg,
+.contact-avito .contact-icon svg{fill:currentColor;stroke:none}
+@media(max-width:600px){
+  .contact-panel{align-items:flex-start;padding:16px}
+  .contact-actions{width:100%}
+  .contact-action{flex:1 1 140px;justify-content:flex-start}
+}
