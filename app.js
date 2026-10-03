@@ -19,6 +19,17 @@ function safeLink(value) {
   }
 }
 
+function safeMedia(value) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  try {
+    const u = new URL(value, location.href);
+    if (u.origin === location.origin) return u.href;
+    return u.protocol === "https:" ? u.href : "";
+  } catch {
+    return "";
+  }
+}
+
 function initials(name = "") {
   return String(name)
     .trim()
@@ -123,6 +134,34 @@ function renderFeed(posts, category = "Все") {
 
     const body = document.createElement("p");
     body.textContent = String(post.text ?? "");
+
+    const mediaItems = Array.isArray(post.media) ? post.media : [];
+    for (const item of mediaItems.slice(0, 4)) {
+      const entry =
+        typeof item === "string" ? { type: "image", src: item } : item || {};
+      if ((entry.type || "image") !== "image") continue;
+
+      const src = safeMedia(entry.src);
+      if (!src) continue;
+
+      const figure = document.createElement("figure");
+      figure.className = "post-media";
+
+      const image = document.createElement("img");
+      image.src = src;
+      image.alt = String(entry.alt || "");
+      image.loading = "lazy";
+      image.decoding = "async";
+      figure.append(image);
+
+      if (entry.caption) {
+        const caption = document.createElement("figcaption");
+        caption.textContent = String(entry.caption);
+        figure.append(caption);
+      }
+
+      article.append(figure);
+    }
 
     article.append(meta, title, body);
 
