@@ -33,6 +33,7 @@ jobs:
           if [ -f platform-loader.js ]; then cp platform-loader.js _site/; fi
           if [ -f integration.json ]; then cp integration.json _site/; fi
           if [ -d media ]; then cp -R media _site/media; fi
+          if [ -d studio ]; then cp -R studio _site/studio; fi
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
