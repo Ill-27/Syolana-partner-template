@@ -102,6 +102,13 @@ function loadStyle(url, marker) {
 }
 
 async function bootIntegration() {
+  let shellReady = false;
+  const onShellReady = () => {
+    shellReady = true;
+    finishBoot();
+  };
+  window.addEventListener("syolana:shell-ready", onShellReady, { once: true });
+
   try {
   const [config, partner] = await Promise.all([
     readJSON("./integration.json"),
@@ -163,7 +170,8 @@ async function bootIntegration() {
     console.warn("Optional Syolana layer unavailable", error);
   }
   } finally {
-    finishBoot();
+    window.removeEventListener("syolana:shell-ready", onShellReady);
+    if (!shellReady) finishBoot();
   }
 }
 
