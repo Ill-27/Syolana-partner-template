@@ -1,13 +1,16 @@
 {
   "partnerId": "demo-partner",
   "mode": "active",
+  "environment": "demo",
+  "assetMode": "public-demo",
   "coreUrl": "https://ill-27.github.io/Syolana-n/partner-core.js",
   "licenseEndpoint": "https://ill-27.github.io/Syolana-n/partners/entitlements.json",
   "features": {
     "immersiveTheme": true,
     "player": true,
     "reader": true,
-    "publishing": true
+    "publishing": false
   },
+  "publishingSource": "vk",
   "coreVersion": "live"
 }
