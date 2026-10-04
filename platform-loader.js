@@ -1,8 +1,13 @@
 function finishBoot() {
+  if (typeof window.__partnerBootDone === "function") {
+    window.__partnerBootDone("platform");
+    return;
+  }
   document.documentElement.classList.remove("partner-booting");
   const boot = document.getElementById("partner-boot");
   if (boot) {
-    window.setTimeout(() => boot.remove(), 360);
+    boot.style.opacity = "0";
+    window.setTimeout(() => boot.remove(), 320);
   }
 }
 
@@ -162,5 +167,4 @@ async function bootIntegration() {
   }
 }
 
-window.addEventListener("syolana:shell-ready", finishBoot, { once: true });
 bootIntegration().catch(() => finishBoot());
