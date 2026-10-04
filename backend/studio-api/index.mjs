@@ -7,6 +7,10 @@ const githubRepo = String(env.GITHUB_REPO || "");
 const githubToken = String(env.GITHUB_TOKEN || "");
 const accessHash = String(env.PARTNER_ACCESS_KEY_HASH || "").toLowerCase();
 const sessionSecret = String(env.SESSION_SECRET || "");
+const entitlementUrl = String(
+  env.ENTITLEMENT_URL ||
+    "https://ill-27.github.io/Syolana-n/partners/entitlements.json",
+);
 const maxImageBytes = 8 * 1024 * 1024;
 
 const json = (statusCode, data, extra = {}) => ({
@@ -95,6 +99,27 @@ function auth(event) {
 function assertConfig() {
   if (!partnerId || !githubRepo || !githubToken || !accessHash || !sessionSecret) {
     throw new Error("Studio API is not configured");
+  }
+}
+
+async function assertPartnerActive() {
+  const url = new URL(entitlementUrl);
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { "user-agent": "Syolana-Partner-Studio" },
+  });
+  if (!response.ok) throw new Error("Entitlement unavailable");
+
+  const data = await response.json();
+  const record =
+    typeof data?.active === "boolean"
+      ? data
+      : data?.partners?.[partnerId];
+
+  if (!record?.active || record?.features?.publishing === false) {
+    const error = new Error("Partner Studio disabled");
+    error.code = "PARTNER_DISABLED";
+    throw error;
   }
 }
 
@@ -279,6 +304,7 @@ export async function handler(event) {
 
   try {
     assertConfig();
+    await assertPartnerActive();
 
     if (path === "/session" && method === "POST") {
       const body = parseBody(event);
@@ -410,6 +436,8 @@ export async function handler(event) {
     return json(404, { error: "not_found" });
   } catch (error) {
     console.error(error);
+    if (error?.code === "PARTNER_DISABLED")
+      return json(403, { error: "partner_disabled" });
     return json(500, { error: "server_error" });
   }
 }
