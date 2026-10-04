@@ -371,6 +371,15 @@ export async function handler(event) {
       return json(201, { ok: true, path: mediaPath });
     }
 
+    const vkDraftDeleteMatch = /^\/vk-drafts\/([a-z0-9._-]+)$/i.exec(path);
+    if (vkDraftDeleteMatch && method === "DELETE") {
+      const ok = await deletePath(
+        "drafts/vk/" + vkDraftDeleteMatch[1] + ".json",
+        "Delete VK draft from Partner Studio: " + vkDraftDeleteMatch[1],
+      );
+      return json(ok ? 200 : 404, { ok });
+    }
+
     const vkDraftMatch = /^\/vk-drafts\/([a-z0-9._-]+)\/publish$/i.exec(path);
     if (vkDraftMatch && method === "POST") {
       const id = vkDraftMatch[1];
