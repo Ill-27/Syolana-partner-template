@@ -1,14 +1,14 @@
-name: Validate partner content
+name: Validate partner site
 
 on:
   push:
     branches: [main]
     paths:
       - "partner.json"
+      - "feed.json"
       - "integration.json"
-      - "posts/**"
       - "scripts/build-feed.mjs"
-      - "scripts/import-vk-drafts.mjs"
+      - "scripts/sync-vk-feed.mjs"
       - "app.js"
       - "platform-loader.js"
       - "studio/**"
@@ -16,10 +16,10 @@ on:
   pull_request:
     paths:
       - "partner.json"
+      - "feed.json"
       - "integration.json"
-      - "posts/**"
       - "scripts/build-feed.mjs"
-      - "scripts/import-vk-drafts.mjs"
+      - "scripts/sync-vk-feed.mjs"
       - "app.js"
       - "platform-loader.js"
       - "studio/**"
@@ -37,15 +37,15 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Validate content and build feed
+      - name: Validate partner and derived VK feed
         run: node scripts/build-feed.mjs
 
-      - name: Syntax-check Studio and serverless API
+      - name: Syntax-check browser, sync and serverless code
         shell: bash
         run: |
           node --check studio/studio.js
           node --check backend/studio-api/index.mjs
-          node --check scripts/import-vk-drafts.mjs
+          node --check scripts/sync-vk-feed.mjs
 
       - name: Check optional integration config
         shell: bash
