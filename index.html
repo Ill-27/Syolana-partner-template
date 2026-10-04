@@ -14,6 +14,7 @@
     html.partner-booting body>*:not(#partner-boot){visibility:hidden}
     #partner-boot{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,#2a173a 0,transparent 38%),#030309;transition:opacity .28s ease}
     #partner-boot[hidden]{display:none}
+    .partner-boot-inner{display:grid;place-items:center;gap:14px;color:#cfc4d9;font:500 12px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.08em;text-transform:uppercase}
     .partner-boot-dots{display:flex;gap:9px}
     .partner-boot-dots i{width:7px;height:7px;border-radius:50%;background:#d5b7ff;opacity:.35;animation:partnerBoot 1.15s ease-in-out infinite}
     .partner-boot-dots i:nth-child(2){animation-delay:.14s}.partner-boot-dots i:nth-child(3){animation-delay:.28s}
@@ -31,11 +32,15 @@
       if(boot){boot.style.opacity="0";setTimeout(()=>boot.remove(),300)}
       document.documentElement.classList.remove("partner-booting");
     };
+    // Safety fallback only. Normally app.js and platform-loader.js remove the
+    // veil much earlier. Keep it long enough that the neutral fallback never
+    // flashes while the central Syolana layer is still arriving on slow mobile
+    // networks.
     setTimeout(()=>{
       window.__partnerBootState={content:true,platform:true};
       window.__partnerBootDone("content");
       window.__partnerBootDone("platform");
-    },4500);
+    },12000);
   </script>
   <link rel="stylesheet" href="./styles.css" />
 
@@ -49,7 +54,10 @@
 </head>
 <body>
   <div id="partner-boot" aria-hidden="true">
-    <div class="partner-boot-dots"><i></i><i></i><i></i></div>
+    <div class="partner-boot-inner">
+      <div class="partner-boot-dots"><i></i><i></i><i></i></div>
+      <span>Открываем пространство…</span>
+    </div>
   </div>
   <a class="skip-link" href="#feed">К публикациям</a>
 
