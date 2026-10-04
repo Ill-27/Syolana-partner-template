@@ -2,6 +2,7 @@
   "mode": "demo",
   "apiEndpoint": "",
   "auth": "server-session",
-  "maxImageMb": 8,
-  "note": "Do not put GitHub/VK/Yandex secrets in this public file."
+  "partnerId": "demo-partner",
+  "publishingSource": "vk",
+  "note": "Public config only. Never put GitHub, VK, Yandex or entitlement secrets here."
 }
