@@ -19,9 +19,29 @@
       <a class="button secondary" href="../">Открыть сайт</a>
     </header>
 
+    <section id="studio-login" class="login-card glass" hidden>
+      <div>
+        <p class="eyebrow">ВХОД ПАРТНЁРА</p>
+        <h2>Откройте Partner Studio</h2>
+        <p>Ключ доступа используется только для короткой серверной сессии и не сохраняется в публичном репозитории.</p>
+      </div>
+      <form id="login-form" autocomplete="off">
+        <label>
+          <span>Partner ID</span>
+          <input id="login-partner-id" name="partnerId" autocomplete="username" required />
+        </label>
+        <label>
+          <span>Ключ доступа</span>
+          <input id="login-access-key" name="accessKey" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="button primary" type="submit">Войти</button>
+        <p id="login-status" class="status" role="status"></p>
+      </form>
+    </section>
+
     <section id="security-note" class="notice glass">
-      <strong>Безопасный режим</strong>
-      <span>В этой тестовой версии изменения сохраняются только в вашем браузере. Секретов GitHub здесь нет и быть не должно.</span>
+      <strong id="security-title">Безопасный режим</strong>
+      <span id="security-text">В этой тестовой версии изменения сохраняются только в вашем браузере. Секретов GitHub здесь нет и быть не должно.</span>
     </section>
 
     <div class="studio-grid">
