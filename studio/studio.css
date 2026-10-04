@@ -32,3 +32,21 @@ dialog{width:min(760px,calc(100% - 28px));border:0;padding:0;background:transpar
 .preview-card h2{font-size:clamp(1.8rem,5vw,3rem)}.preview-card>p:last-child{white-space:pre-line;color:var(--muted);line-height:1.72}
 #preview-media{margin:0 0 18px;overflow:hidden;border-radius:18px}#preview-media img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}#preview-media figcaption{padding:8px 3px;color:var(--muted);font-size:.75rem}
 @media(max-width:820px){.studio-head{align-items:flex-start;flex-direction:column}.studio-grid{grid-template-columns:1fr}.sidebar{min-height:0}.contact-grid{grid-template-columns:1fr}.two{grid-template-columns:1fr}.editor-top{align-items:flex-start;flex-direction:column}}
+
+
+.login-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,420px);
+  gap:24px;
+  align-items:end;
+  margin:14px 0;
+  padding:22px;
+  border-radius:22px
+}
+.login-card[hidden]{display:none}
+.login-card p{color:var(--muted);line-height:1.65}
+.login-card form{margin:0}
+.login-card .button{width:100%}
+@media(max-width:820px){
+  .login-card{grid-template-columns:1fr;align-items:start}
+}
