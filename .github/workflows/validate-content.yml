@@ -46,6 +46,7 @@ jobs:
           node --check studio/studio.js
           node --check backend/studio-api/index.mjs
           node --check scripts/sync-vk-feed.mjs
+          node --check scripts/build-site.mjs
 
       - name: Check optional integration config
         shell: bash
