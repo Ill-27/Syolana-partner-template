@@ -160,12 +160,44 @@ async function bootIntegration() {
     const [module] = await Promise.all([modulePromise, stylePromise]);
     if (typeof module.mountPartnerCore !== "function") return;
 
-    await module.mountPartnerCore({
+    const handle = await module.mountPartnerCore({
       partner: partner || {},
       partnerId: config.partnerId || "",
       features: access.features || config.features || {},
       version: build,
     });
+
+    // Manual disable always wins, even for a tab that was already open.
+    // Re-check on return to the tab and periodically. If access was revoked,
+    // remove the central UI and remote styles immediately; partner content
+    // remains in the neutral local shell.
+    let checking = false;
+    const revalidate = async () => {
+      if (checking) return;
+      checking = true;
+      try {
+        const next = await entitlement(config);
+        if (!next.active) {
+          await handle?.destroy?.();
+          document
+            .querySelectorAll("link[data-syolana-remote]")
+            .forEach((node) => node.remove());
+          document.documentElement.dataset.syolana = "off";
+          clearInterval(interval);
+          document.removeEventListener("visibilitychange", onVisibility);
+        }
+      } catch {
+        // A transient network failure must not destroy a working partner site.
+      } finally {
+        checking = false;
+      }
+    };
+
+    const onVisibility = () => {
+      if (!document.hidden) revalidate();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    const interval = setInterval(revalidate, 5 * 60 * 1000);
   } catch (error) {
     console.warn("Optional Syolana layer unavailable", error);
   }
