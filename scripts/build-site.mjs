@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = process.cwd();
@@ -49,6 +49,16 @@ if (active) {
   try {
     await copy(path.join(root, "studio"), path.join(dist, "studio"));
   } catch {}
+} else {
+  // A detached/off build must boot instantly without requesting a missing
+  // optional loader and without retaining a platform-specific script tag.
+  const indexPath = path.join(dist, "index.html");
+  let html = await readFile(indexPath, "utf8");
+  html = html.replace(
+    /\s*<script\s+type=["']module["']\s+src=["']\.\/platform-loader\.js["']><\/script>\s*/i,
+    "\n  <script>window.__partnerBootDone?.(\"platform\");</script>\n",
+  );
+  await writeFile(indexPath, html, "utf8");
 }
 
 console.log(
