@@ -78,3 +78,16 @@ POST /vk-drafts/:id/publish
 Центральный Syolana entitlement остаётся отдельным от Studio.
 
 Даже если автоматическая оплата появится позже, ручной административный переключатель всегда остаётся приоритетным: Syolana может выключить core и Studio для конкретного partnerId.
+
+
+## Стоимость на старте
+
+По состоянию на октябрь 2026 года Yandex Cloud публикует free tier для ряда serverless-сервисов, включая Cloud Functions, API Gateway и YDB Serverless. Это позволяет держать небольшой пилот в нетарифицируемом объёме, но не является обещанием вечной нулевой стоимости: лимиты и тарифы нужно контролировать, а в биллинге включить уведомления.
+
+Официальные страницы:
+- https://yandex.cloud/ru/docs/billing/concepts/serverless-free-tier
+- https://yandex.cloud/ru/docs/functions/
+- https://yandex.cloud/ru/docs/api-gateway/pricing
+- https://yandex.cloud/ru/docs/ydb/pricing/serverless
+
+Для Syolana разумный старт: один общий API Gateway + отдельные partnerId/права, минимальная YDB Serverless для сессий и аудита, секреты только на сервере.
