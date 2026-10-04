@@ -1,17 +1,16 @@
 import crypto from "node:crypto";
 
 const env = process.env;
-const allowedOrigin = String(env.ALLOWED_ORIGIN || "");
-const partnerId = String(env.PARTNER_ID || "");
-const githubRepo = String(env.GITHUB_REPO || "");
-const githubToken = String(env.GITHUB_TOKEN || "");
-const accessHash = String(env.PARTNER_ACCESS_KEY_HASH || "").toLowerCase();
-const sessionSecret = String(env.SESSION_SECRET || "");
-const entitlementUrl = String(
-  env.ENTITLEMENT_URL ||
-    "https://ill-27.github.io/Syolana-n/partners/entitlements.json",
-);
-const maxImageBytes = 8 * 1024 * 1024;
+const allowedOrigin = String(env.ALLOWED_ORIGIN || "").trim();
+const partnerId = String(env.PARTNER_ID || "").trim();
+const githubRepo = String(env.GITHUB_REPO || "").trim();
+const githubToken = String(env.GITHUB_TOKEN || "").trim();
+const accessHash = String(env.PARTNER_ACCESS_KEY_HASH || "").toLowerCase().trim();
+const sessionSecret = String(env.SESSION_SECRET || "").trim();
+const entitlementUrl = String(env.ENTITLEMENT_URL || "").trim();
+const entitlementServiceToken = String(
+  env.ENTITLEMENT_SERVICE_TOKEN || "",
+).trim();
 
 const json = (statusCode, data, extra = {}) => ({
   statusCode,
@@ -29,7 +28,7 @@ function cors() {
     ? {
         "access-control-allow-origin": allowedOrigin,
         "access-control-allow-headers": "authorization,content-type",
-        "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "access-control-allow-methods": "GET,POST,PUT,OPTIONS",
         "vary": "Origin",
       }
     : {};
@@ -71,13 +70,18 @@ function verifySession(token) {
   if (!token || !sessionSecret) return null;
   const [body, sig] = String(token).split(".");
   if (!body || !sig) return null;
+
   const expected = crypto
     .createHmac("sha256", sessionSecret)
     .update(body)
     .digest("base64url");
+
   if (!constantEqual(sig, expected)) return null;
+
   try {
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    const payload = JSON.parse(
+      Buffer.from(body, "base64url").toString("utf8"),
+    );
     if (payload.partnerId !== partnerId) return null;
     if (Number(payload.exp || 0) < Date.now()) return null;
     return payload;
@@ -88,26 +92,45 @@ function verifySession(token) {
 
 function auth(event) {
   const headers = event.headers || {};
-  const value =
-    headers.authorization ||
-    headers.Authorization ||
-    "";
+  const value = headers.authorization || headers.Authorization || "";
   const match = /^Bearer\s+(.+)$/i.exec(value);
   return verifySession(match?.[1]);
 }
 
 function assertConfig() {
-  if (!partnerId || !githubRepo || !githubToken || !accessHash || !sessionSecret) {
-    throw new Error("Studio API is not configured");
+  const required = {
+    PARTNER_ID: partnerId,
+    PARTNER_ACCESS_KEY_HASH: accessHash,
+    SESSION_SECRET: sessionSecret,
+    ALLOWED_ORIGIN: allowedOrigin,
+    ENTITLEMENT_URL: entitlementUrl,
+    ENTITLEMENT_SERVICE_TOKEN: entitlementServiceToken,
+    GITHUB_REPO: githubRepo,
+    GITHUB_TOKEN: githubToken,
+  };
+
+  const missing = Object.entries(required)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missing.length) {
+    throw new Error("Studio API is not configured: " + missing.join(", "));
   }
 }
 
 async function assertPartnerActive() {
   const url = new URL(entitlementUrl);
+  url.searchParams.set("partnerId", partnerId);
+
   const response = await fetch(url, {
     cache: "no-store",
-    headers: { "user-agent": "Syolana-Partner-Studio" },
+    headers: {
+      "authorization": "Bearer " + entitlementServiceToken,
+      "accept": "application/json",
+      "user-agent": "Partner-Studio/3.0",
+    },
   });
+
   if (!response.ok) throw new Error("Entitlement unavailable");
 
   const data = await response.json();
@@ -116,37 +139,13 @@ async function assertPartnerActive() {
       ? data
       : data?.partners?.[partnerId];
 
-  if (!record?.active || record?.features?.publishing === false) {
+  if (!record?.active || record?.features?.studio === false) {
     const error = new Error("Partner Studio disabled");
     error.code = "PARTNER_DISABLED";
     throw error;
   }
-}
 
-function safePost(post) {
-  const id = String(post?.id || "").trim();
-  const title = String(post?.title || "").trim();
-  const text = String(post?.text || "").trim();
-  const category = String(post?.category || "Публикации").trim().slice(0, 60);
-  const publishedAt = String(post?.publishedAt || "").trim();
-
-  if (!/^[a-z0-9][a-z0-9._-]{1,90}$/i.test(id)) throw new Error("Invalid post id");
-  if (!title || title.length > 140) throw new Error("Invalid title");
-  if (!text || text.length > 12000) throw new Error("Invalid text");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(publishedAt)) throw new Error("Invalid date");
-
-  const links = Array.isArray(post?.links) ? post.links.slice(0, 8) : [];
-  const media = Array.isArray(post?.media) ? post.media.slice(0, 4) : [];
-
-  return {
-    id,
-    title,
-    text,
-    category,
-    publishedAt,
-    media,
-    links,
-  };
+  return record;
 }
 
 function safeContacts(value) {
@@ -159,8 +158,9 @@ function safeContacts(value) {
 
   if (email) {
     const bare = email.replace(/^mailto:/i, "");
-    if (!/^[^@\s]+@(yandex\.ru|ya\.ru)$/i.test(bare))
+    if (!/^[^@\s]+@(yandex\.ru|ya\.ru)$/i.test(bare)) {
       throw new Error("Yandex email required");
+    }
     out.push({
       type: "email",
       label: "Yandex-почта",
@@ -170,19 +170,36 @@ function safeContacts(value) {
 
   const checkedUrl = (raw, hosts, label) => {
     if (!raw) return "";
-    const u = new URL(raw);
-    if (u.protocol !== "https:" || !hosts.some((host) => u.hostname === host || u.hostname.endsWith("." + host)))
+    const url = new URL(raw);
+    if (
+      url.protocol !== "https:" ||
+      !hosts.some(
+        (host) =>
+          url.hostname === host || url.hostname.endsWith("." + host),
+      )
+    ) {
       throw new Error("Invalid " + label + " URL");
-    return u.href;
+    }
+    return url.href;
   };
 
   const vkHref = checkedUrl(vk, ["vk.com"], "VK");
-  if (vkHref)
-    out.push({ type: "vk", label: "ВКонтакте", href: vkHref });
+  if (vkHref) {
+    out.push({
+      type: "vk",
+      label: "ВКонтакте",
+      href: vkHref,
+    });
+  }
 
   const avitoHref = checkedUrl(avito, ["avito.ru"], "Avito");
-  if (avitoHref)
-    out.push({ type: "avito", label: "Авито", href: avitoHref });
+  if (avitoHref) {
+    out.push({
+      type: "avito",
+      label: "Авито",
+      href: avitoHref,
+    });
+  }
 
   return out;
 }
@@ -196,14 +213,17 @@ function ghPath(path) {
 
 async function github(method, path, body) {
   const response = await fetch(
-    "https://api.github.com/repos/" + githubRepo + "/contents/" + ghPath(path),
+    "https://api.github.com/repos/" +
+      githubRepo +
+      "/contents/" +
+      ghPath(path),
     {
       method,
       headers: {
         "accept": "application/vnd.github+json",
         "authorization": "Bearer " + githubToken,
         "x-github-api-version": "2022-11-28",
-        "user-agent": "Syolana-Partner-Studio",
+        "user-agent": "Partner-Studio-Settings",
         ...(body ? { "content-type": "application/json" } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,
@@ -211,103 +231,60 @@ async function github(method, path, body) {
   );
 
   if (response.status === 404) return null;
+
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error("GitHub API " + response.status + ": " + detail.slice(0, 300));
+    throw new Error(
+      "GitHub settings API " +
+        response.status +
+        ": " +
+        detail.slice(0, 240),
+    );
   }
-  return response.status === 204 ? null : response.json();
+
+  return response.json();
 }
 
-async function readContent(path) {
-  const item = await github("GET", path);
+async function readPartner() {
+  const item = await github("GET", "partner.json");
   if (!item || Array.isArray(item) || !item.content) return null;
+
   return {
     sha: item.sha,
-    text: Buffer.from(item.content.replace(/\s/g, ""), "base64").toString("utf8"),
+    value: JSON.parse(
+      Buffer.from(item.content.replace(/\s/g, ""), "base64").toString(
+        "utf8",
+      ),
+    ),
   };
 }
 
-async function listJson(dir) {
-  const items = await github("GET", dir);
-  if (!Array.isArray(items)) return [];
-  const out = [];
-  for (const item of items.filter((x) => x.type === "file" && x.name.endsWith(".json"))) {
-    const file = await readContent(dir + "/" + item.name);
-    if (!file) continue;
-    try {
-      out.push(JSON.parse(file.text));
-    } catch {}
-  }
-  return out;
-}
-
-async function putJson(path, value, message) {
-  const existing = await readContent(path);
-  const payload = {
-    message,
-    content: Buffer.from(JSON.stringify(value, null, 2) + "\n").toString("base64"),
-    branch: "main",
-  };
-  if (existing?.sha) payload.sha = existing.sha;
-  await github("PUT", path, payload);
-}
-
-async function deletePath(path, message) {
-  const existing = await readContent(path);
-  if (!existing?.sha) return false;
-  await github("DELETE", path, {
-    message,
-    sha: existing.sha,
+async function writePartner(current, value) {
+  await github("PUT", "partner.json", {
+    message: "Update partner contact settings",
+    content: Buffer.from(
+      JSON.stringify(value, null, 2) + "\n",
+    ).toString("base64"),
+    sha: current.sha,
     branch: "main",
   });
-  return true;
-}
-
-async function saveMedia(body) {
-  const filename = String(body?.filename || "").trim();
-  const mime = String(body?.mime || "").trim().toLowerCase();
-  const base64 = String(body?.base64 || "").replace(/^data:[^;]+;base64,/, "");
-
-  const extensions = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/avif": "avif",
-    "image/svg+xml": "svg",
-  };
-  const ext = extensions[mime];
-  if (!ext) throw new Error("Unsupported image type");
-
-  const bytes = Buffer.from(base64, "base64");
-  if (!bytes.length || bytes.length > maxImageBytes) throw new Error("Invalid image size");
-
-  const stem = filename
-    .replace(/\.[a-z0-9]+$/i, "")
-    .replace(/[^a-z0-9._-]+/gi, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 70) || "image";
-
-  const path = "media/" + Date.now().toString(36) + "-" + stem + "." + ext;
-  await github("PUT", path, {
-    message: "Add Partner Studio media",
-    content: bytes.toString("base64"),
-    branch: "main",
-  });
-  return path;
 }
 
 export async function handler(event) {
   const method = String(event?.httpMethod || "GET").toUpperCase();
   const path = String(event?.path || "/").replace(/\/+$/, "") || "/";
 
-  if (method === "OPTIONS") return { statusCode: 204, headers: cors(), body: "" };
+  if (method === "OPTIONS") {
+    return { statusCode: 204, headers: cors(), body: "" };
+  }
 
   try {
     assertConfig();
-    await assertPartnerActive();
+    const entitlement = await assertPartnerActive();
 
     if (path === "/session" && method === "POST") {
       const body = parseBody(event);
+
       if (
         String(body.partnerId || "") !== partnerId ||
         !constantEqual(sha256(body.accessKey || ""), accessHash)
@@ -319,22 +296,38 @@ export async function handler(event) {
         partnerId,
         exp: Date.now() + 45 * 60 * 1000,
       });
-      return json(200, { token, expiresIn: 2700 });
+
+      return json(200, {
+        token,
+        expiresIn: 2700,
+      });
     }
 
     const session = auth(event);
     if (!session) return json(401, { error: "unauthorized" });
 
+    if (path === "/status" && method === "GET") {
+      return json(200, {
+        partnerId,
+        active: true,
+        features: entitlement.features || {},
+        publishingSource: "vk",
+        postEditing: false,
+      });
+    }
+
     if (path === "/contacts" && method === "GET") {
-      const current = await readContent("partner.json");
+      const current = await readPartner();
       if (!current) return json(404, { error: "partner_not_found" });
-      const partner = JSON.parse(current.text);
+
       const byType = Object.fromEntries(
-        (Array.isArray(partner.contacts) ? partner.contacts : []).map((item) => [
-          item.type,
-          item.href,
-        ]),
+        (
+          Array.isArray(current.value.contacts)
+            ? current.value.contacts
+            : []
+        ).map((item) => [item.type, item.href]),
       );
+
       return json(200, {
         email: String(byType.email || "").replace(/^mailto:/i, ""),
         vk: byType.vk || "",
@@ -343,101 +336,29 @@ export async function handler(event) {
     }
 
     if (path === "/contacts" && method === "PUT") {
-      const current = await readContent("partner.json");
+      const current = await readPartner();
       if (!current) return json(404, { error: "partner_not_found" });
-      const partner = JSON.parse(current.text);
-      partner.contacts = safeContacts(parseBody(event).contacts);
-      await putJson(
-        "partner.json",
-        partner,
-        "Update Partner Studio contacts",
+
+      current.value.contacts = safeContacts(
+        parseBody(event).contacts,
       );
-      return json(200, { ok: true, contacts: partner.contacts });
-    }
 
-        if (path === "/posts" && method === "GET") {
-      const [posts, vkDrafts] = await Promise.all([
-        listJson("posts"),
-        listJson("drafts/vk"),
-      ]);
-      return json(200, { posts, vkDrafts });
-    }
+      await writePartner(current, current.value);
 
-    if (path === "/posts" && method === "POST") {
-      const post = safePost(parseBody(event).post);
-      await putJson(
-        "posts/" + post.id + ".json",
-        post,
-        "Publish Partner Studio post: " + post.id,
-      );
-      return json(201, { ok: true, post });
-    }
-
-    const postMatch = /^\/posts\/([a-z0-9._-]+)$/i.exec(path);
-    if (postMatch && method === "PUT") {
-      const post = safePost({ ...parseBody(event).post, id: postMatch[1] });
-      await putJson(
-        "posts/" + post.id + ".json",
-        post,
-        "Update Partner Studio post: " + post.id,
-      );
-      return json(200, { ok: true, post });
-    }
-
-    if (postMatch && method === "DELETE") {
-      const ok = await deletePath(
-        "posts/" + postMatch[1] + ".json",
-        "Delete Partner Studio post: " + postMatch[1],
-      );
-      return json(ok ? 200 : 404, { ok });
-    }
-
-    if (path === "/media" && method === "POST") {
-      const mediaPath = await saveMedia(parseBody(event));
-      return json(201, { ok: true, path: mediaPath });
-    }
-
-    const vkDraftDeleteMatch = /^\/vk-drafts\/([a-z0-9._-]+)$/i.exec(path);
-    if (vkDraftDeleteMatch && method === "DELETE") {
-      const ok = await deletePath(
-        "drafts/vk/" + vkDraftDeleteMatch[1] + ".json",
-        "Delete VK draft from Partner Studio: " + vkDraftDeleteMatch[1],
-      );
-      return json(ok ? 200 : 404, { ok });
-    }
-
-    const vkDraftMatch = /^\/vk-drafts\/([a-z0-9._-]+)\/publish$/i.exec(path);
-    if (vkDraftMatch && method === "POST") {
-      const id = vkDraftMatch[1];
-      const draftFile = await readContent("drafts/vk/" + id + ".json");
-      if (!draftFile) return json(404, { error: "draft_not_found" });
-
-      const draft = JSON.parse(draftFile.text);
-      const post = safePost({
-        ...draft,
-        id,
-        category: draft.category || "VK",
-        publishedAt:
-          draft.publishedAt || new Date().toISOString().slice(0, 10),
+      return json(200, {
+        ok: true,
+        contacts: current.value.contacts,
       });
-
-      await putJson(
-        "posts/" + post.id + ".json",
-        post,
-        "Publish VK draft from Partner Studio: " + post.id,
-      );
-      await deletePath(
-        "drafts/vk/" + id + ".json",
-        "Remove published VK draft: " + id,
-      );
-      return json(201, { ok: true, post });
     }
 
     return json(404, { error: "not_found" });
   } catch (error) {
     console.error(error);
-    if (error?.code === "PARTNER_DISABLED")
+
+    if (error?.code === "PARTNER_DISABLED") {
       return json(403, { error: "partner_disabled" });
+    }
+
     return json(500, { error: "server_error" });
   }
 }
