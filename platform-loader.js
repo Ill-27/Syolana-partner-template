@@ -197,7 +197,7 @@ async function bootIntegration() {
       if (!document.hidden) revalidate();
     };
     document.addEventListener("visibilitychange", onVisibility);
-    const interval = setInterval(revalidate, 5 * 60 * 1000);
+    const interval = setInterval(revalidate, 60 * 1000);
   } catch (error) {
     console.warn("Optional Syolana layer unavailable", error);
   }
