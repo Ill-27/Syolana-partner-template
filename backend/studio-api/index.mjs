@@ -124,6 +124,44 @@ function safePost(post) {
   };
 }
 
+function safeContacts(value) {
+  const input = value || {};
+  const email = String(input.email || "").trim();
+  const vk = String(input.vk || "").trim();
+  const avito = String(input.avito || "").trim();
+
+  const out = [];
+
+  if (email) {
+    const bare = email.replace(/^mailto:/i, "");
+    if (!/^[^@\s]+@(yandex\.ru|ya\.ru)$/i.test(bare))
+      throw new Error("Yandex email required");
+    out.push({
+      type: "email",
+      label: "Yandex-почта",
+      href: "mailto:" + bare,
+    });
+  }
+
+  const checkedUrl = (raw, hosts, label) => {
+    if (!raw) return "";
+    const u = new URL(raw);
+    if (u.protocol !== "https:" || !hosts.some((host) => u.hostname === host || u.hostname.endsWith("." + host)))
+      throw new Error("Invalid " + label + " URL");
+    return u.href;
+  };
+
+  const vkHref = checkedUrl(vk, ["vk.com"], "VK");
+  if (vkHref)
+    out.push({ type: "vk", label: "ВКонтакте", href: vkHref });
+
+  const avitoHref = checkedUrl(avito, ["avito.ru"], "Avito");
+  if (avitoHref)
+    out.push({ type: "avito", label: "Авито", href: avitoHref });
+
+  return out;
+}
+
 function ghPath(path) {
   return path
     .split("/")
@@ -261,7 +299,37 @@ export async function handler(event) {
     const session = auth(event);
     if (!session) return json(401, { error: "unauthorized" });
 
-    if (path === "/posts" && method === "GET") {
+    if (path === "/contacts" && method === "GET") {
+      const current = await readContent("partner.json");
+      if (!current) return json(404, { error: "partner_not_found" });
+      const partner = JSON.parse(current.text);
+      const byType = Object.fromEntries(
+        (Array.isArray(partner.contacts) ? partner.contacts : []).map((item) => [
+          item.type,
+          item.href,
+        ]),
+      );
+      return json(200, {
+        email: String(byType.email || "").replace(/^mailto:/i, ""),
+        vk: byType.vk || "",
+        avito: byType.avito || "",
+      });
+    }
+
+    if (path === "/contacts" && method === "PUT") {
+      const current = await readContent("partner.json");
+      if (!current) return json(404, { error: "partner_not_found" });
+      const partner = JSON.parse(current.text);
+      partner.contacts = safeContacts(parseBody(event).contacts);
+      await putJson(
+        "partner.json",
+        partner,
+        "Update Partner Studio contacts",
+      );
+      return json(200, { ok: true, contacts: partner.contacts });
+    }
+
+        if (path === "/posts" && method === "GET") {
       const [posts, vkDrafts] = await Promise.all([
         listJson("posts"),
         listJson("drafts/vk"),
@@ -301,6 +369,33 @@ export async function handler(event) {
     if (path === "/media" && method === "POST") {
       const mediaPath = await saveMedia(parseBody(event));
       return json(201, { ok: true, path: mediaPath });
+    }
+
+    const vkDraftMatch = /^\/vk-drafts\/([a-z0-9._-]+)\/publish$/i.exec(path);
+    if (vkDraftMatch && method === "POST") {
+      const id = vkDraftMatch[1];
+      const draftFile = await readContent("drafts/vk/" + id + ".json");
+      if (!draftFile) return json(404, { error: "draft_not_found" });
+
+      const draft = JSON.parse(draftFile.text);
+      const post = safePost({
+        ...draft,
+        id,
+        category: draft.category || "VK",
+        publishedAt:
+          draft.publishedAt || new Date().toISOString().slice(0, 10),
+      });
+
+      await putJson(
+        "posts/" + post.id + ".json",
+        post,
+        "Publish VK draft from Partner Studio: " + post.id,
+      );
+      await deletePath(
+        "drafts/vk/" + id + ".json",
+        "Remove published VK draft: " + id,
+      );
+      return json(201, { ok: true, post });
     }
 
     return json(404, { error: "not_found" });
