@@ -22,18 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Validate and build feed
+      - name: Validate partner and VK-derived feed
         run: node scripts/build-feed.mjs
-      - name: Build public site artifact
-        shell: bash
-        run: |
-          rm -rf _site
-          mkdir -p _site
-          cp index.html app.js styles.css partner.json feed.json robots.txt _site/
-          if [ -f platform-loader.js ]; then cp platform-loader.js _site/; fi
-          if [ -f integration.json ]; then cp integration.json _site/; fi
-          if [ -d media ]; then cp -R media _site/media; fi
-          if [ -d studio ]; then cp -R studio _site/studio; fi
+      - name: Build neutral public artifact
+        env:
+          DIST_DIR: _site
+        run: node scripts/build-site.mjs
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
