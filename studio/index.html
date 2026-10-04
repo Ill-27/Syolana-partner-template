@@ -13,17 +13,22 @@
     <header class="studio-head glass">
       <div>
         <p class="eyebrow">PARTNER STUDIO</p>
-        <h1>Публикации без GitHub</h1>
-        <p class="lead">Создавайте, редактируйте, удаляйте и предварительно смотрите посты. Публичная отправка включится только через защищённый серверный шлюз.</p>
+        <h1>Публикации из вашего VK</h1>
+        <p class="lead">Посты создаются, редактируются и удаляются только на вашей публичной странице ВКонтакте. Сайт получает уже опубликованные записи автоматически и не хранит отдельную редакционную копию.</p>
       </div>
       <a class="button secondary" href="../">Открыть сайт</a>
     </header>
 
+    <section id="security-note" class="notice glass">
+      <strong id="security-title">VK — единственный источник</strong>
+      <span id="security-text">Syolana не получает право редактировать текст ваших публикаций. VK-токен хранится только в Secrets вашего репозитория.</span>
+    </section>
+
     <section id="studio-login" class="login-card glass" hidden>
       <div>
-        <p class="eyebrow">ВХОД ПАРТНЁРА</p>
-        <h2>Откройте Partner Studio</h2>
-        <p>Ключ доступа используется только для короткой серверной сессии и не сохраняется в публичном репозитории.</p>
+        <p class="eyebrow">НАСТРОЙКИ ПАРТНЁРА</p>
+        <h2>Вход в Studio</h2>
+        <p>Вход нужен только для защищённых настроек сайта. Для самих публикаций он не используется.</p>
       </div>
       <form id="login-form" autocomplete="off">
         <label>
@@ -39,74 +44,42 @@
       </form>
     </section>
 
-    <section id="security-note" class="notice glass">
-      <strong id="security-title">Безопасный режим</strong>
-      <span id="security-text">В этой тестовой версии изменения сохраняются только в вашем браузере. Секретов GitHub здесь нет и быть не должно.</span>
-    </section>
-
     <div class="studio-grid">
       <aside class="sidebar glass">
         <div class="sidebar-head">
           <div>
-            <p class="eyebrow">ПУБЛИКАЦИИ</p>
-            <h2>Черновики и сайт</h2>
+            <p class="eyebrow">ПУБЛИЧНАЯ ЛЕНТА</p>
+            <h2>Последние записи</h2>
           </div>
-          <button id="new-post" class="icon-button" type="button" aria-label="Новый пост">＋</button>
+          <button id="refresh-feed" class="icon-button" type="button" aria-label="Обновить предпросмотр">↻</button>
         </div>
+        <p class="studio-copy">Чтобы изменить публикацию, измените её во ВКонтакте. После следующей синхронизации сайт обновится автоматически.</p>
         <div id="post-list" class="post-list"></div>
       </aside>
 
       <section class="editor glass">
         <div class="editor-top">
           <div>
-            <p id="editor-state" class="eyebrow">НОВЫЙ ЧЕРНОВИК</p>
-            <h2 id="editor-title">Новая публикация</h2>
+            <p class="eyebrow">ПРЕДПРОСМОТР</p>
+            <h2 id="preview-heading">Публикация</h2>
           </div>
-          <div class="editor-actions">
-            <button id="preview-post" class="button secondary" type="button">Предпросмотр</button>
-            <button id="delete-post" class="button danger" type="button">Удалить</button>
-          </div>
+          <a id="open-vk-post" class="button secondary" href="#" target="_blank" rel="noopener noreferrer" hidden>Открыть во VK</a>
         </div>
 
-        <form id="post-form" autocomplete="off">
-          <label>
-            <span>Заголовок</span>
-            <input id="title" name="title" maxlength="140" required placeholder="Название публикации" />
-          </label>
+        <article id="post-preview" class="readonly-post">
+          <p id="preview-meta" class="eyebrow"></p>
+          <figure id="preview-media" hidden>
+            <img alt="" />
+          </figure>
+          <h2 id="preview-title">Выберите публикацию</h2>
+          <p id="preview-text">Здесь появится точный предпросмотр записи, уже опубликованной на странице партнёра.</p>
+        </article>
 
-          <div class="two">
-            <label>
-              <span>Категория</span>
-              <input id="category" name="category" maxlength="60" placeholder="Новости" />
-            </label>
-            <label>
-              <span>Дата</span>
-              <input id="publishedAt" name="publishedAt" type="date" required />
-            </label>
-          </div>
-
-          <label>
-            <span>Текст</span>
-            <textarea id="text" name="text" rows="12" maxlength="12000" required placeholder="Напишите публикацию…"></textarea>
-          </label>
-
-          <label class="media-field">
-            <span>Изображение</span>
-            <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml" />
-            <small>До подключения сервера изображение используется только в локальном предпросмотре.</small>
-          </label>
-
-          <label>
-            <span>Подпись к изображению</span>
-            <input id="caption" name="caption" maxlength="240" placeholder="Необязательно" />
-          </label>
-
-          <div class="save-row">
-            <button class="button primary" type="submit">Сохранить черновик</button>
-            <button id="publish-post" class="button" type="button">Отправить на публикацию</button>
-          </div>
-          <p id="form-status" class="status" role="status"></p>
-        </form>
+        <div class="source-card">
+          <p class="eyebrow">ИСТОЧНИК</p>
+          <p>Лента сайта является техническим отображением публичной стены партнёра. Публикации не создаются через Syolana.</p>
+          <p id="feed-status" class="status" role="status"></p>
+        </div>
       </section>
     </div>
 
@@ -114,26 +87,19 @@
       <div>
         <p class="eyebrow">КОНТАКТЫ ПАРТНЁРА</p>
         <h2>Почта, VK и Avito</h2>
-        <p>На публичном сайте показываются только те способы связи, которые партнёр сам включил.</p>
+        <p>Контакты — отдельные настройки сайта. Они не влияют на источник публикаций.</p>
       </div>
       <div class="contact-grid">
         <label><span>Yandex-почта</span><input id="contact-email" type="email" placeholder="name@yandex.ru" /></label>
         <label><span>VK</span><input id="contact-vk" type="url" placeholder="https://vk.com/…" /></label>
         <label><span>Avito</span><input id="contact-avito" type="url" placeholder="https://www.avito.ru/…" /></label>
       </div>
-      <button id="save-contacts" class="button secondary" type="button">Сохранить локально</button>
+      <div class="save-row">
+        <button id="save-contacts" class="button primary" type="button">Сохранить контакты</button>
+        <span id="contact-status" class="status" role="status"></span>
+      </div>
     </section>
   </main>
-
-  <dialog id="preview">
-    <article class="preview-card">
-      <button class="preview-close" type="button" aria-label="Закрыть">×</button>
-      <figure id="preview-media" hidden><img alt="" /><figcaption></figcaption></figure>
-      <p id="preview-meta" class="eyebrow"></p>
-      <h2 id="preview-title"></h2>
-      <p id="preview-text"></p>
-    </article>
-  </dialog>
 
   <script type="module" src="./studio.js"></script>
 </body>
